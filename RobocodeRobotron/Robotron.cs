@@ -7,19 +7,23 @@ using System.Drawing;
 using Robocode;
 using Robocode.Util;
 
-namespace rcano
+namespace RC
 {
+    // Robotron
+    //
+    // Robot for Picanhas competition
+    //
     class Robotron : AdvancedRobot
     {
-        private readonly Random RandomGen = new Random();
-
         private readonly Double MinAngle = 10.0;
         private readonly Double MaxAngle = 90.0;
 
         private Double AngleRange = 0.0;
         private Double DoubleAngleRange = 0.0;
 
-        private Dictionary<String, ScannedRobotEvent> trackedEnemies;
+        private Dictionary<String, TrackedEnemy> trackedEnemies;
+
+        private TrackedEnemy curTrackedEnemy = null;
 
         private void Init()
         {
@@ -32,17 +36,24 @@ namespace rcano
             IsAdjustRadarForGunTurn = true;
             IsAdjustRadarForRobotTurn = true;
 
-            trackedEnemies = new Dictionary<string, ScannedRobotEvent>(Others);
+            trackedEnemies = new Dictionary<string, TrackedEnemy>(Others);
         }
 
         private Boolean movingForward = true;
         private void UpdateTank()
         {
+            /*if (curTrackedEnemy != null)
+            {
+                SetAhead(0.0);
+                SetTurnRight(0.0);
+                return;
+            }*/
+
             if (movingForward)
             {
                 if (DistanceRemaining == 0.0)
                 {
-                    SetAhead(100.0);
+                    SetAhead(Util.GetRandom() * 100.0 + 100.0);
                     movingForward = false;
                 }
             }
@@ -50,82 +61,94 @@ namespace rcano
             {
                 if (DistanceRemaining == 0.0)
                 {
-                    SetBack(100.0);
+                    SetBack(Util.GetRandom() * 100.0 + 100.0);
                     movingForward = true;
                 }
             }
-            SetTurnRight(360.0f);
+            SetTurnRight(360.0);
+        }
+
+        //
+        // Gun methods
+        //
+        private void PointGunAt(TrackedEnemy curTrackedEnemy)
+        {
+            double enemyBearingRadians = Util.CalculateBearingRadians(X, Y, curTrackedEnemy.X, curTrackedEnemy.Y);
+            double gunRotationRadians = Utils.NormalRelativeAngle(enemyBearingRadians - GunHeadingRadians);
+
+            Out.WriteLine("Gun heading " + GunHeading);
+            Out.WriteLine("Enemy relative bearing " + Utils.ToDegrees(enemyBearingRadians));
+
+            Out.WriteLine("Rotating gun by " + gunRotationRadians + " radians (" + Utils.ToDegrees(gunRotationRadians) + " degrees)");
+            SetTurnGunRightRadians(gunRotationRadians);
         }
 
         private void UpdateGun()
         {
             // Calculate closest enemy
-            Double distance = Double.MaxValue;
-            foreach (KeyValuePair<String, ScannedRobotEvent> pair in trackedEnemies)
+            Double minDistance = Double.MaxValue;
+            foreach (KeyValuePair<String, TrackedEnemy> pair in trackedEnemies)
             {
-                if (pair.Value.Distance < distance)
-                {
-                    distance = pair.Value.Distance;
+                double enemyDistance = Util.CalculateDistance(X, Y, pair.Value.X, pair.Value.Y);
 
-                    Out.WriteLine("Tracking enemy " + pair.Value.Name + " at distance " + distance);
-                    trackedEnemy = pair.Value;
+                if (enemyDistance < minDistance)
+                {
+                    minDistance = enemyDistance;
+
+                    Out.WriteLine("Tracking enemy " + pair.Value.Name + " at distance " + minDistance);
+                    curTrackedEnemy = pair.Value;
                 }
             }
 
             // If we are tracking an enemy, move the gun, then fire
-            if (trackedEnemy != null)
+            if (curTrackedEnemy != null)
             {
-                Double gunTurnDegrees = Utils.NormalRelativeAngleDegrees(trackedEnemy.Bearing + Heading - GunHeading);
+                Out.WriteLine("Pointing gun at enemy " + curTrackedEnemy.Name);
+                PointGunAt(curTrackedEnemy);
 
-                Out.WriteLine("Tracking enemy " + trackedEnemy.Name + " at bearing " + trackedEnemy.Bearing);
-                Out.WriteLine("  Gun is at heading " + GunHeading);
-                Out.WriteLine("  Tank is at heading " + Heading);
-                Out.WriteLine("  Moving gun " + gunTurnDegrees + " degree");
-
-                if (Math.Abs(gunTurnDegrees) < 8.0)
+                if (Math.Abs(GunTurnRemaining) < 0.5)
                 {
-                    SmartFire(trackedEnemy);
+                    SmartFire(curTrackedEnemy);
                 }
-
-                SetTurnGunRight(gunTurnDegrees);
             }
         }
 
+        //
+        // Radar methods
+        //
         private void UpdateRadar()
         {
             // For now just rotate it at max speed
+            Out.WriteLine("Rotating radar by 45 degrees");
             SetTurnRadarRight(45);
         }
 
-
-        private void SmartFire(ScannedRobotEvent e)
+        private void SmartFire(TrackedEnemy enemy)
         {
-            Double firePower = 0.1;
+            double firePower = 0.1;
+            double enemyDistance = Util.CalculateDistance(X, Y, enemy.X, enemy.Y);
 
-            if (e.Distance > 500.0)
+            if (enemyDistance > 500.0)
             {
                 firePower = 0.1;
             }
-            else if (e.Distance < 20.0)
+            else if (enemyDistance < 20.0)
             {
                 firePower = 3.0;
             }
             else
             {
-                firePower = 3.0 * (500.0 - e.Distance) / 480.0;
+                firePower = 3.0 * (500.0 - enemyDistance) / 480.0;
             }
 
-            Out.WriteLine("Firing Enemy: " + e.Name + " with power: " + firePower);
+            Out.WriteLine("Firing Enemy: " + enemy.Name + " with power: " + firePower + "(Gun heat = " + GunHeat + ")");
             Fire(firePower);
-        }
-
-        private Boolean GetRandomBool()
-        {
-            return Convert.ToBoolean(RandomGen.Next() % 2);
         }
 
         public override void Run()
         {
+            base.Run();
+
             Init();
 
             while (true)
@@ -138,31 +161,40 @@ namespace rcano
             }
         }
 
-        private ScannedRobotEvent trackedEnemy = null;
-
-        // Robot event handler, when the robot sees another robot
-        public override void OnScannedRobot(ScannedRobotEvent e)
+        //
+        // When a robot sees another robot
+        //
+        public override void OnScannedRobot(ScannedRobotEvent enemy)
         {
-            base.OnScannedRobot(e);
+            base.OnScannedRobot(enemy);
 
-            Out.WriteLine("Enemy Detected: " + e.Name + " at distance " + e.Distance);
-            trackedEnemies[e.Name] = e;
+            Out.WriteLine("Enemy " + enemy.Name + " detected at distance " + enemy.Distance);
+            trackedEnemies[enemy.Name] = new TrackedEnemy(this, enemy);
 
-            /* if (trackedEnemy != null && e.Name == trackedEnemy.Name)
+            /* if (curTrackedEnemy != null && curTrackedEnemy.Name == enemy.Name)
              {
-                 // Check for the arc compared to the size of the enemy to see if we will hit
-                 if (Math.Abs(GunHeading - trackedEnemy.Bearing + Heading) < 5.0)
+                 if (Math.Abs(RadarHeading - GunHeading) <= 3.0f)
                  {
-                     SmartFire(e);
+                     Out.WriteLine("  Firing current tracked enemy " + curTrackedEnemy.Name);
+                     SmartFire(enemy);
                  }
              }*/
         }
 
-        public override void OnRobotDeath(RobotDeathEvent evnt)
+        //
+        // When another robot dies
+        //
+        public override void OnRobotDeath(RobotDeathEvent enemy)
         {
-            base.OnRobotDeath(evnt);
+            base.OnRobotDeath(enemy);
 
-            trackedEnemies.Remove(evnt.Name);
+            Out.WriteLine("Enemy " + enemy.Name + " died");
+            if (curTrackedEnemy.Name == enemy.Name)
+            {
+                curTrackedEnemy = null;
+            }
+
+            trackedEnemies.Remove(enemy.Name);
         }
 
     }
