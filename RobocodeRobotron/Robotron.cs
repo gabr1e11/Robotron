@@ -28,7 +28,7 @@ namespace RC
     //   - Created discovery radar (turns all the time)
     //   - Tracked all enemies
     //   - Point gun at closest enemy and fire
-    // v0.2
+    // v0.2.1
     //   - Implemented anti-gravity movement (not working well)
     //
     class Robotron : AdvancedRobot
