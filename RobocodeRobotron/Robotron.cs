@@ -3,15 +3,33 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Drawing;
+using System.Numerics;
 
 using Robocode;
 using Robocode.Util;
 
 namespace RC
 {
-    // Robotron
+    enum RadarState
+    {
+        Discovery
+    }
+
+    enum MoveState
+    {
+        Wander
+    }
+
+    // Robotron v0.2
     //
     // Robot for Picanhas competition
+    //
+    // v0.1
+    //   - Created discovery radar (turns all the time)
+    //   - Tracked all enemies
+    //   - Point gun at closest enemy and fire
+    // v0.2
+    //   - Implemented anti-gravity movement (not working well)
     //
     class Robotron : AdvancedRobot
     {
@@ -22,8 +40,8 @@ namespace RC
         private Double DoubleAngleRange = 0.0;
 
         private Dictionary<String, TrackedEnemy> trackedEnemies;
-
         private TrackedEnemy curTrackedEnemy = null;
+        Vector2 AntigravityVector = new Vector2();
 
         private void Init()
         {
@@ -39,33 +57,90 @@ namespace RC
             trackedEnemies = new Dictionary<string, TrackedEnemy>(Others);
         }
 
-        private Boolean movingForward = true;
+        //
+        // Loops through all the tracked enemies and calculates useful values like the antigravity power
+        // or who is closest to ourselves
+        //
+        private void ProcessEnemies()
+        {
+            AntigravityVector = new Vector2(0.0, 0.0);
+
+            Double minDistance = Double.MaxValue;
+
+            foreach (KeyValuePair<String, TrackedEnemy> pair in trackedEnemies)
+            {
+                pair.Value.UpdateFromPlayer(this);
+
+                // Check distance
+                if (pair.Value.Distance < minDistance)
+                {
+                    minDistance = pair.Value.Distance;
+
+                    Out.WriteLine("Tracking enemy " + pair.Value.Name + " at distance " + minDistance);
+                    curTrackedEnemy = pair.Value;
+                }
+
+                // Calculate antigravity
+                AntigravityVector += pair.Value.AntigravityVector;
+            }
+
+            Out.WriteLine("Antigravity is " + AntigravityVector);
+        }
+
+
+        private Boolean MoveForward = true;
+        private bool UseAntigravity = true;
+
         private void UpdateTank()
         {
-            /*if (curTrackedEnemy != null)
-            {
-                SetAhead(0.0);
-                SetTurnRight(0.0);
-                return;
-            }*/
+            double AntigravityDistance = AntigravityVector.Module();
 
-            if (movingForward)
+            Out.WriteLine("[AG] Antigravity distance is " + AntigravityDistance);
+
+            // Not enough antigravity or there are walls
+            if (!UseAntigravity || AntigravityDistance < 5 || X < 20 || X > (BattleFieldWidth - 20) || Y < 20 || Y < (BattleFieldHeight - 20))
             {
-                if (DistanceRemaining == 0.0)
+                if (MoveForward)
                 {
-                    SetAhead(Util.GetRandom() * 100.0 + 100.0);
-                    movingForward = false;
+                    if (DistanceRemaining == 0.0)
+                    {
+                        SetAhead(Util.GetRandom() * 100.0 + 100.0);
+                        MoveForward = false;
+                    }
                 }
+                else
+                {
+                    if (DistanceRemaining == 0.0)
+                    {
+                        SetBack(Util.GetRandom() * 100.0 + 100.0);
+                        MoveForward = true;
+                    }
+                }
+                SetTurnRight(360.0);
             }
             else
             {
-                if (DistanceRemaining == 0.0)
+                Out.WriteLine("[AG] Using antigravity!!");
+
+                double antigravityAngleRadians = Util.CalculateBearingRadians(AntigravityVector.X, AntigravityVector.Y);
+                double tankTurnRadians = Utils.NormalRelativeAngle(antigravityAngleRadians - HeadingRadians); // (-PI, PI)
+
+                if (Math.Abs(tankTurnRadians) <= (Math.PI / 2))
                 {
-                    SetBack(Util.GetRandom() * 100.0 + 100.0);
-                    movingForward = true;
+                    // Antigravity is on the forward direction
+                    Out.WriteLine("[AG] Move ahead by " + AntigravityDistance);
+                    SetAhead(AntigravityDistance);
                 }
+                else
+                {
+                    // Antigravity is on the backward direction
+                    Out.WriteLine("[AG] Move back by " + AntigravityDistance);
+                    SetBack(AntigravityDistance);
+                }
+
+                Out.WriteLine("[AG] Rotate by " + AntigravityDistance);
+                SetTurnRight(tankTurnRadians);
             }
-            SetTurnRight(360.0);
         }
 
         //
@@ -73,7 +148,7 @@ namespace RC
         //
         private void PointGunAt(TrackedEnemy curTrackedEnemy)
         {
-            double enemyBearingRadians = Util.CalculateBearingRadians(X, Y, curTrackedEnemy.X, curTrackedEnemy.Y);
+            double enemyBearingRadians = Util.CalculateBearingRadians(X, Y, curTrackedEnemy.Position.X, curTrackedEnemy.Position.Y);
             double gunRotationRadians = Utils.NormalRelativeAngle(enemyBearingRadians - GunHeadingRadians);
 
             Out.WriteLine("Gun heading " + GunHeading);
@@ -85,20 +160,7 @@ namespace RC
 
         private void UpdateGun()
         {
-            // Calculate closest enemy
-            Double minDistance = Double.MaxValue;
-            foreach (KeyValuePair<String, TrackedEnemy> pair in trackedEnemies)
-            {
-                double enemyDistance = Util.CalculateDistance(X, Y, pair.Value.X, pair.Value.Y);
 
-                if (enemyDistance < minDistance)
-                {
-                    minDistance = enemyDistance;
-
-                    Out.WriteLine("Tracking enemy " + pair.Value.Name + " at distance " + minDistance);
-                    curTrackedEnemy = pair.Value;
-                }
-            }
 
             // If we are tracking an enemy, move the gun, then fire
             if (curTrackedEnemy != null)
@@ -126,7 +188,7 @@ namespace RC
         private void SmartFire(TrackedEnemy enemy)
         {
             double firePower = 0.1;
-            double enemyDistance = Util.CalculateDistance(X, Y, enemy.X, enemy.Y);
+            double enemyDistance = Util.CalculateDistance(X, Y, enemy.Position.X, enemy.Position.Y);
 
             if (enemyDistance > 500.0)
             {
@@ -153,6 +215,8 @@ namespace RC
 
             while (true)
             {
+                ProcessEnemies();
+
                 UpdateTank();
                 UpdateRadar();
                 UpdateGun();
