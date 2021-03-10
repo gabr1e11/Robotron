@@ -2,6 +2,8 @@
 
 using Robocode;
 
+using static RC.Logger;
+
 namespace RC
 {
     // TrackedEnemy
@@ -14,7 +16,7 @@ namespace RC
         public double HeadingRadians { get; private set; } = 0.0;
         public double Energy { get; private set; } = 0.0;
         public double Velocity { get; private set; } = 0.0;
-        public Vector2 Position { get; private set; }
+        public Vector2 Position { get; private set; } = new Vector2();
         public long LastTurnSeen { get; private set; } = 0;
 
         public Vector2 AntigravityVector { get; private set; }
@@ -35,7 +37,8 @@ namespace RC
 
             Position = Util.CalculateXYPos(me.X, me.Y, enemy.BearingRadians + me.HeadingRadians, enemy.Distance);
 
-            Console.WriteLine("Enemy X,Y is at position " + Position);
+            Log("Enemy " + Name + " is at position " + Position);
+            Log("  My position is " + new Vector2(me.X, me.Y));
             LastTurnSeen = enemy.Time;
 
             UpdateFromPlayer(me);
@@ -55,7 +58,7 @@ namespace RC
 
             AntigravityVector = -playerEnemyVector.GetNormalized() * forceStrength;
 
-            Console.WriteLine("Enemy " + Name + " antigravity is" + AntigravityVector);
+            Log("Enemy " + Name + " antigravity is" + AntigravityVector);
 
             // Distance
             Distance = Util.CalculateDistance(me.X, me.Y, Position.X, Position.Y);

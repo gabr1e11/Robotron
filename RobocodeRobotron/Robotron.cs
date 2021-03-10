@@ -4,9 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Drawing;
 using System.Numerics;
+using System.Reflection;
 
 using Robocode;
 using Robocode.Util;
+
+using static RC.Logger;
 
 namespace RC
 {
@@ -20,7 +23,7 @@ namespace RC
         Wander
     }
 
-    // Robotron v0.2
+    // Robotron v0.2.2
     //
     // Robot for Picanhas competition
     //
@@ -30,6 +33,10 @@ namespace RC
     //   - Point gun at closest enemy and fire
     // v0.2.1
     //   - Implemented anti-gravity movement (not working well)
+    // v0.2.2
+    //   - Fixed coordinate system to compass coordinate system
+    //   - Added log system
+    //   - Antigravity works better now
     //
     class Robotron : AdvancedRobot
     {
@@ -39,8 +46,8 @@ namespace RC
         private Double AngleRange = 0.0;
         private Double DoubleAngleRange = 0.0;
 
-        private Dictionary<String, TrackedEnemy> trackedEnemies;
-        private TrackedEnemy curTrackedEnemy = null;
+        private Dictionary<String, TrackedEnemy> TrackedEnemies;
+        private TrackedEnemy CurTrackedEnemy = null;
         Vector2 AntigravityVector = new Vector2();
 
         private void Init()
@@ -54,7 +61,7 @@ namespace RC
             IsAdjustRadarForGunTurn = true;
             IsAdjustRadarForRobotTurn = true;
 
-            trackedEnemies = new Dictionary<string, TrackedEnemy>(Others);
+            TrackedEnemies = new Dictionary<string, TrackedEnemy>(Others);
         }
 
         //
@@ -67,7 +74,7 @@ namespace RC
 
             Double minDistance = Double.MaxValue;
 
-            foreach (KeyValuePair<String, TrackedEnemy> pair in trackedEnemies)
+            foreach (KeyValuePair<String, TrackedEnemy> pair in TrackedEnemies)
             {
                 pair.Value.UpdateFromPlayer(this);
 
@@ -76,71 +83,71 @@ namespace RC
                 {
                     minDistance = pair.Value.Distance;
 
-                    Out.WriteLine("Tracking enemy " + pair.Value.Name + " at distance " + minDistance);
-                    curTrackedEnemy = pair.Value;
+                    Log("Tracking enemy " + pair.Value.Name + " at distance " + minDistance);
+                    CurTrackedEnemy = pair.Value;
                 }
 
                 // Calculate antigravity
                 AntigravityVector += pair.Value.AntigravityVector;
             }
 
-            Out.WriteLine("Antigravity is " + AntigravityVector);
+            Log("Antigravity is " + AntigravityVector);
         }
 
-
-        private Boolean MoveForward = true;
-        private bool UseAntigravity = true;
+        bool IsPositionSafeFromWalls(Vector2 position)
+        {
+            return (position.X < (BattleFieldWidth - Width - 10)) && (position.X > Width + 10) &&
+                   (position.Y < (BattleFieldHeight - Height - 10)) && (position.Y > Height + 10);
+        }
 
         private void UpdateTank()
         {
-            double AntigravityDistance = AntigravityVector.Module();
+            Vector2 antigravityNewPosition = CalculateXYFromDirection(AntigravityVector);
+            double antigravityDistance = AntigravityVector.Module();
 
-            Out.WriteLine("[AG] Antigravity distance is " + AntigravityDistance);
+            Vector2 newPosition = new Vector2(X, Y);
 
-            // Not enough antigravity or there are walls
-            if (!UseAntigravity || AntigravityDistance < 5 || X < 20 || X > (BattleFieldWidth - 20) || Y < 20 || Y < (BattleFieldHeight - 20))
+            if (antigravityDistance >= 5.0)
             {
-                if (MoveForward)
-                {
-                    if (DistanceRemaining == 0.0)
-                    {
-                        SetAhead(Util.GetRandom() * 100.0 + 100.0);
-                        MoveForward = false;
-                    }
-                }
-                else
-                {
-                    if (DistanceRemaining == 0.0)
-                    {
-                        SetBack(Util.GetRandom() * 100.0 + 100.0);
-                        MoveForward = true;
-                    }
-                }
-                SetTurnRight(360.0);
+                Log("Using antigravity");
+                newPosition = CalculateXYFromDirection(AntigravityVector);
+            }
+            else if (CurTrackedEnemy != null)
+            {
+                Log("Using enemy position: " + CurTrackedEnemy.Name);
+                newPosition = CurTrackedEnemy.Position;
             }
             else
             {
-                Out.WriteLine("[AG] Using antigravity!!");
+                Log("Using random");
 
-                double antigravityAngleRadians = Util.CalculateBearingRadians(AntigravityVector.X, AntigravityVector.Y);
-                double tankTurnRadians = Utils.NormalRelativeAngle(antigravityAngleRadians - HeadingRadians); // (-PI, PI)
+                // Just go somewhere
+                double newX = X + Util.GetRandom() * 20.0 - 10.0;
+                double newY = Y + Util.GetRandom() * 20.0 - 10.0;
 
-                if (Math.Abs(tankTurnRadians) <= (Math.PI / 2))
-                {
-                    // Antigravity is on the forward direction
-                    Out.WriteLine("[AG] Move ahead by " + AntigravityDistance);
-                    SetAhead(AntigravityDistance);
-                }
-                else
-                {
-                    // Antigravity is on the backward direction
-                    Out.WriteLine("[AG] Move back by " + AntigravityDistance);
-                    SetBack(AntigravityDistance);
-                }
-
-                Out.WriteLine("[AG] Rotate by " + AntigravityDistance);
-                SetTurnRight(tankTurnRadians);
+                newPosition = new Vector2(newX, newY);
             }
+
+            Log("Tank movement -> CurPos=" + new Vector2(X, Y) + " NewPos=" + newPosition);
+
+            // Check for walls
+            if (IsPositionSafeFromWalls(newPosition))
+            {
+                Log("Position is safe from walls");
+                GoToXY(newPosition);
+            }
+            else
+            {
+                Log("Position is NOT safe from walls, stopping tank");
+                StopTank();
+            }
+
+        }
+
+        private void StopTank()
+        {
+            SetAhead(0.0f);
+            SetTurnRight(0.0f);
         }
 
         //
@@ -151,26 +158,54 @@ namespace RC
             double enemyBearingRadians = Util.CalculateBearingRadians(X, Y, curTrackedEnemy.Position.X, curTrackedEnemy.Position.Y);
             double gunRotationRadians = Utils.NormalRelativeAngle(enemyBearingRadians - GunHeadingRadians);
 
-            Out.WriteLine("Gun heading " + GunHeading);
-            Out.WriteLine("Enemy relative bearing " + Utils.ToDegrees(enemyBearingRadians));
+            Log("Gun heading " + GunHeading);
+            Log("Enemy relative bearing " + Utils.ToDegrees(enemyBearingRadians));
 
-            Out.WriteLine("Rotating gun by " + gunRotationRadians + " radians (" + Utils.ToDegrees(gunRotationRadians) + " degrees)");
+            Log("Rotating gun by " + gunRotationRadians + " radians (" + Utils.ToDegrees(gunRotationRadians) + " degrees)");
             SetTurnGunRightRadians(gunRotationRadians);
+        }
+
+        private Vector2 CalculateXYFromDirection(Vector2 direction)
+        {
+            return (new Vector2(X, Y)) + direction;
+        }
+
+        private void GoToXY(Vector2 newPosition)
+        {
+            Vector2 tankPosition = new Vector2(X, Y);
+            Vector2 enemyTankVector = newPosition - tankPosition;
+
+            double angleRadians = Util.CalculateBearingRadians(enemyTankVector.X, enemyTankVector.Y);
+            double tankTurnRadians = Utils.NormalRelativeAngle(angleRadians - HeadingRadians); // (-PI, PI)
+
+            double distance = enemyTankVector.Module();
+
+            if (Math.Abs(angleRadians - HeadingRadians) <= (Math.PI / 2))
+            {
+                Log("Move ahead by " + distance);
+                SetAhead(distance);
+            }
+            else
+            {
+                Log("Move back by " + distance);
+                SetBack(distance);
+            }
+
+            Log("Rotate by " + Utils.ToDegrees(tankTurnRadians));
+            SetTurnRight(tankTurnRadians);
         }
 
         private void UpdateGun()
         {
-
-
             // If we are tracking an enemy, move the gun, then fire
-            if (curTrackedEnemy != null)
+            if (CurTrackedEnemy != null)
             {
-                Out.WriteLine("Pointing gun at enemy " + curTrackedEnemy.Name);
-                PointGunAt(curTrackedEnemy);
+                Log("Pointing gun at enemy " + CurTrackedEnemy.Name);
+                PointGunAt(CurTrackedEnemy);
 
                 if (Math.Abs(GunTurnRemaining) < 0.5)
                 {
-                    SmartFire(curTrackedEnemy);
+                    SmartFire(CurTrackedEnemy);
                 }
             }
         }
@@ -181,7 +216,7 @@ namespace RC
         private void UpdateRadar()
         {
             // For now just rotate it at max speed
-            Out.WriteLine("Rotating radar by 45 degrees");
+            Log("Rotating radar by 45 degrees");
             SetTurnRadarRight(45);
         }
 
@@ -192,7 +227,7 @@ namespace RC
 
             if (enemyDistance > 500.0)
             {
-                firePower = 0.1;
+                firePower = 1;
             }
             else if (enemyDistance < 20.0)
             {
@@ -200,10 +235,10 @@ namespace RC
             }
             else
             {
-                firePower = 3.0 * (500.0 - enemyDistance) / 480.0;
+                firePower = 1.0 + 2.0 * (500.0 - enemyDistance) / 480.0;
             }
 
-            Out.WriteLine("Firing Enemy: " + enemy.Name + " with power: " + firePower + "(Gun heat = " + GunHeat + ")");
+            Log("Firing Enemy: " + enemy.Name + " with power: " + firePower + "(Gun heat = " + GunHeat + ")");
             Fire(firePower);
         }
 
@@ -232,17 +267,8 @@ namespace RC
         {
             base.OnScannedRobot(enemy);
 
-            Out.WriteLine("Enemy " + enemy.Name + " detected at distance " + enemy.Distance);
-            trackedEnemies[enemy.Name] = new TrackedEnemy(this, enemy);
-
-            /* if (curTrackedEnemy != null && curTrackedEnemy.Name == enemy.Name)
-             {
-                 if (Math.Abs(RadarHeading - GunHeading) <= 3.0f)
-                 {
-                     Out.WriteLine("  Firing current tracked enemy " + curTrackedEnemy.Name);
-                     SmartFire(enemy);
-                 }
-             }*/
+            Log("Enemy " + enemy.Name + " detected at distance " + enemy.Distance);
+            TrackedEnemies[enemy.Name] = new TrackedEnemy(this, enemy);
         }
 
         //
@@ -252,14 +278,20 @@ namespace RC
         {
             base.OnRobotDeath(enemy);
 
-            Out.WriteLine("Enemy " + enemy.Name + " died");
-            if (curTrackedEnemy.Name == enemy.Name)
+            Log("Enemy " + enemy.Name + " died");
+            if (CurTrackedEnemy.Name == enemy.Name)
             {
-                curTrackedEnemy = null;
+                CurTrackedEnemy = null;
             }
 
-            trackedEnemies.Remove(enemy.Name);
+            TrackedEnemies.Remove(enemy.Name);
         }
 
+        public override void OnHitWall(HitWallEvent evnt)
+        {
+            base.OnHitWall(evnt);
+
+            Log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Hit a wall");
+        }
     }
 }
