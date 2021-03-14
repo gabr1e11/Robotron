@@ -1,6 +1,7 @@
 ﻿using System;
 
 using Robocode.Util;
+using RC.Math;
 
 namespace RC
 {
@@ -11,20 +12,20 @@ namespace RC
         public static Vector2 CalculateXYPos(double startX, double startY, double bearingRadians, double distance)
         {
             // Sin is used for X and Cos for Y to transform to Robocode angle system
-            double enemyX = startX + distance * Math.Sin(bearingRadians);
-            double enemyY = startY + distance * Math.Cos(bearingRadians);
+            double enemyX = startX + distance * System.Math.Sin(bearingRadians);
+            double enemyY = startY + distance * System.Math.Cos(bearingRadians);
 
             return new Vector2(enemyX, enemyY);
         }
 
         public static double CalculateBearingRadians(double startX, double startY, double endX, double endY)
         {
-            return Math.Atan2(endX - startX, endY - startY);
+            return System.Math.Atan2(endX - startX, endY - startY);
         }
 
         public static double CalculateBearingRadians(double X, double Y)
         {
-            return Math.Atan2(X, Y);
+            return System.Math.Atan2(X, Y);
         }
 
         public static bool GetRandomBool()
@@ -42,7 +43,7 @@ namespace RC
             double deltaX = endX - startX;
             double deltaY = endY - startY;
 
-            return Math.Sqrt(deltaX * deltaX + deltaY * deltaY);
+            return System.Math.Sqrt(deltaX * deltaX + deltaY * deltaY);
         }
     }
 }

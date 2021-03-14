@@ -3,6 +3,7 @@
 using Robocode;
 
 using static RC.Logger;
+using RC.Math;
 
 namespace RC
 {
@@ -10,7 +11,7 @@ namespace RC
     //
     // Contains information of an enemy seen by the radar
     //
-    class TrackedEnemy
+    public class TrackedEnemy
     {
         public String Name { get; private set; }
         public double HeadingRadians { get; private set; } = 0.0;

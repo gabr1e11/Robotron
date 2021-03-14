@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace RC
+namespace RC.Math
 {
     public struct Vector2
     {
@@ -30,14 +30,22 @@ namespace RC
 
         public double Module()
         {
-            return Math.Sqrt(X * X + Y * Y);
+            return System.Math.Sqrt(X * X + Y * Y);
         }
 
         public Vector2 GetNormalized()
         {
+            Vector2 normVector = new Vector2(X, Y);
+            normVector.Normalize();
+            return normVector;
+        }
+
+        public void Normalize()
+        {
             double module = Module();
 
-            return new Vector2(X / module, Y / module);
+            X /= module;
+            Y /= module;
         }
 
         public override string ToString()
