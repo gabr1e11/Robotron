@@ -24,7 +24,7 @@ namespace RC
         Wander
     }
 
-    // Robotron v0.2.2
+    // Robotron v0.3
     //
     // Robot for Picanhas competition
     //
@@ -38,6 +38,8 @@ namespace RC
     //   - Fixed coordinate system to compass coordinate system
     //   - Added log system
     //   - Antigravity works better now
+    // v0.3
+    //    - Added rotation around the enemy when attacking
     //
     public class Robotron : AdvancedRobot
     {
@@ -56,8 +58,7 @@ namespace RC
             IsAdjustRadarForRobotTurn = true;
 
             TrackedEnemies = new TrackedEnemies(this);
-            // BehaviourStateMachine = new Behaviour.BehaviourStateMachine(this, new Behaviour.WaitForTrackedEnemyState(this));
-            BehaviourStateMachine = new Behaviour.BehaviourStateMachine(this, new Behaviour.NoopState());
+            BehaviourStateMachine = new Behaviour.BehaviourStateMachine(this, new Behaviour.WaitForTrackedEnemyState(this));
         }
         private Vector2 RotatePosition;
         private bool RotatePositionSet = false;
@@ -70,10 +71,10 @@ namespace RC
 
             while (true)
             {
-                if (RotatePositionSet)
-                {
-                    RotateAroundPosition(RotatePosition, Utils.ToRadians(10.0), true);
-                }
+                /*  if (RotatePositionSet)
+                  {
+                      RotateAroundPosition(RotatePosition, Utils.ToRadians(10.0), true);
+                  }*/
 
                 TrackedEnemies.Update();
                 BehaviourStateMachine.ProcessState();

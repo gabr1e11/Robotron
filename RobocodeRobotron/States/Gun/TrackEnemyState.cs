@@ -20,7 +20,7 @@ namespace RC.Gun
         {
             robot.PointGunAt(Enemy);
 
-            if (System.Math.Abs(robot.GunTurnRemaining) < 0.5)
+            if (System.Math.Abs(robot.GunTurnRemaining) < 5.0)
             {
                 Strategy.SmartFire(robot, Enemy);
             }
