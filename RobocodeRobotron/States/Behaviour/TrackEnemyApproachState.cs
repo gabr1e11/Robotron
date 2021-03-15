@@ -8,12 +8,12 @@ using RC.Math;
 
 namespace RC.Behaviour
 {
-    public class TrackingEnemyState : FSM.FSMState<BehaviourStateMachine>
+    public class TrackEnemyState : Behaviour.State
     {
         private Robotron Robot = null;
         private TrackedEnemy TrackedEnemy = null;
 
-        public TrackingEnemyState(Robotron robot)
+        public TrackEnemyState(Robotron robot)
         {
             Robot = robot;
         }
@@ -22,7 +22,7 @@ namespace RC.Behaviour
         {
             TrackedEnemy = Strategy.CalculateTrackedEnemy(Robot.TrackedEnemies);
 
-            behaviour.ChangeBodyState(new Body.AntigravityState(TrackedEnemy));
+            behaviour.ChangeBodyState(new Body.TrackEnemyApproachState(TrackedEnemy));
             behaviour.ChangeGunState(new Gun.TrackEnemyState(TrackedEnemy));
             behaviour.ChangeRadarState(new Radar.FullScanState());
         }
@@ -32,7 +32,7 @@ namespace RC.Behaviour
             TrackedEnemy newTrackedEnemy = Strategy.CalculateTrackedEnemy(Robot.TrackedEnemies);
             if (newTrackedEnemy != TrackedEnemy)
             {
-                behaviour.ChangeState(new TrackingEnemyState(Robot));
+                behaviour.ChangeState(new TrackEnemyState(Robot));
                 return;
             }
 

@@ -1,14 +1,12 @@
 ﻿using System;
 
-using RC.FSM;
-
 namespace RC.Behaviour
 {
-    public class WaitForTrackedEnemiesState : FSMState<BehaviourStateMachine>
+    public class WaitForTrackedEnemyState : Behaviour.State
     {
         private Robotron Robot = null;
 
-        public WaitForTrackedEnemiesState(Robotron robot)
+        public WaitForTrackedEnemyState(Robotron robot)
         {
             Robot = robot;
         }
@@ -23,7 +21,7 @@ namespace RC.Behaviour
             TrackedEnemy trackedEnemy = Strategy.CalculateTrackedEnemy(Robot.TrackedEnemies);
             if (trackedEnemy != null)
             {
-                behaviour.ChangeState(new TrackingEnemyState(Robot));
+                behaviour.ChangeState(new TrackEnemyState(Robot));
                 return;
             }
         }

@@ -50,7 +50,7 @@ namespace RC.Body
             if (Strategy.IsPositionSafeFromWalls(robot, newPosition))
             {
                 Log("Position is safe from walls");
-                robot.GoToXY(newPosition);
+                robot.GoToPosition(newPosition);
             }
             else
             {

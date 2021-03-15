@@ -34,7 +34,12 @@ namespace RC
         public void OnScannedRobot(ScannedRobotEvent enemy)
         {
             Log("Enemy " + enemy.Name + " detected at distance " + enemy.Distance);
-            Enemies[enemy.Name] = new TrackedEnemy(Robot, enemy);
+            if (!Enemies.ContainsKey(enemy.Name))
+            {
+                Enemies[enemy.Name] = new TrackedEnemy(Robot, enemy);
+            }
+
+            Enemies[enemy.Name].UpdateFromRadar(Robot, enemy);
         }
 
         public void OnRobotDeath(RobotDeathEvent enemy)

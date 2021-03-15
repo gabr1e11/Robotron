@@ -13,7 +13,7 @@ namespace RC.Behaviour
 
         public Robotron Robot = null;
 
-        public BehaviourStateMachine(Robotron robot)
+        public BehaviourStateMachine(Robotron robot, Behaviour.State initState)
         {
             Robot = robot;
 
@@ -21,7 +21,7 @@ namespace RC.Behaviour
             GunStateMachine = new FiniteStateMachine<Robotron>(robot, null);
             RadarStateMachine = new FiniteStateMachine<Robotron>(robot, null);
 
-            BehaviourFSM = new FiniteStateMachine<BehaviourStateMachine>(this, new WaitForTrackedEnemiesState(robot));
+            BehaviourFSM = new FiniteStateMachine<BehaviourStateMachine>(this, initState);
         }
 
         public void ChangeState(FSMState<BehaviourStateMachine> newState)

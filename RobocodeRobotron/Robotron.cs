@@ -56,8 +56,11 @@ namespace RC
             IsAdjustRadarForRobotTurn = true;
 
             TrackedEnemies = new TrackedEnemies(this);
-            BehaviourStateMachine = new Behaviour.BehaviourStateMachine(this);
+            // BehaviourStateMachine = new Behaviour.BehaviourStateMachine(this, new Behaviour.WaitForTrackedEnemyState(this));
+            BehaviourStateMachine = new Behaviour.BehaviourStateMachine(this, new Behaviour.NoopState());
         }
+        private Vector2 RotatePosition;
+        private bool RotatePositionSet = false;
 
         public override void Run()
         {
@@ -67,6 +70,11 @@ namespace RC
 
             while (true)
             {
+                if (RotatePositionSet)
+                {
+                    RotateAroundPosition(RotatePosition, Utils.ToRadians(10.0), true);
+                }
+
                 TrackedEnemies.Update();
                 BehaviourStateMachine.ProcessState();
                 Execute();
@@ -74,11 +82,11 @@ namespace RC
         }
 
         // CONTROL METHODS
-        public void GoToXY(Vector2 newPosition)
+        public void GoToPosition(Vector2 position)
         {
-            Vector2 targetVector = new Vector2(newPosition.X - X, newPosition.Y - Y);
+            Vector2 targetVector = new Vector2(position.X - X, position.Y - Y);
 
-            double angleToTargetRadians = Util.CalculateBearingRadians(X, Y, newPosition.X, newPosition.Y);
+            double angleToTargetRadians = Util.CalculateBearingRadians(X, Y, position.X, position.Y);
             double targetAngleRadians = Utils.NormalRelativeAngle(angleToTargetRadians - HeadingRadians); // (-PI, PI)
 
             double distance = targetVector.Module();
@@ -97,6 +105,64 @@ namespace RC
 
             Log("Rotate by " + Utils.ToDegrees(turnAngle));
             SetTurnRightRadians(turnAngle);
+        }
+
+        public void RotateAroundPosition(Vector2 position, Double angularSpeedRadians, bool clockwise)
+        {
+            Vector2 targetVector = new Vector2(position.X - X, position.Y - Y);
+
+            double angleToTargetRadians = Util.CalculateBearingRadians(X, Y, position.X, position.Y);
+            double targetAngleRadians = Utils.NormalRelativeAngle(angleToTargetRadians - HeadingRadians); // (-PI, PI)
+
+            double distance = targetVector.Module();
+            Double speed = angularSpeedRadians * distance;
+
+            double turnAngle = System.Math.Atan(System.Math.Tan(targetAngleRadians));
+
+            Double frontBackMultiplier = 1.0;
+            if (targetAngleRadians == turnAngle)
+            {
+                if (turnAngle >= 0.0)
+                {
+                    turnAngle -= System.Math.PI / 2.0;
+                    frontBackMultiplier = -1.0;
+                }
+                else
+                {
+                    turnAngle += System.Math.PI / 2.0;
+                    frontBackMultiplier = 1.0;
+                }
+            }
+            else
+            {
+                if (turnAngle >= 0.0)
+                {
+                    turnAngle -= System.Math.PI / 2.0;
+                    frontBackMultiplier = 1.0;
+                }
+                else
+                {
+                    turnAngle += System.Math.PI / 2.0;
+                    frontBackMultiplier = -1.0;
+                }
+            }
+
+            if (speed > 3 * Rules.MAX_VELOCITY)
+            {
+                Double rate = 3 * Rules.MAX_VELOCITY / speed;
+
+                turnAngle *= rate;
+
+                speed = 3 * Rules.MAX_VELOCITY;
+            }
+
+            SetAhead(frontBackMultiplier * speed);
+            SetTurnRightRadians(turnAngle * 3.0);
+
+            Log("Current Speed=" + Velocity);
+            Log("Around point=" + position + ", Robot position=" + new Vector2(X, Y));
+            Log("distance=" + distance + ", speed=" + speed + ", turnAngle=" + Utils.ToDegrees(turnAngle));
+
         }
 
         public void StopTank()
@@ -120,17 +186,62 @@ namespace RC
         // EVENTS
         public override void OnScannedRobot(ScannedRobotEvent enemy)
         {
+            base.OnScannedRobot(enemy);
+
             TrackedEnemies.OnScannedRobot(enemy);
         }
 
         public override void OnRobotDeath(RobotDeathEvent enemy)
         {
+            base.OnRobotDeath(enemy);
+
             TrackedEnemies.OnRobotDeath(enemy);
         }
 
         public override void OnHitWall(HitWallEvent evnt)
         {
+            base.OnHitWall(evnt);
+
             Log("HIT A WALL");
+        }
+
+        public override void OnBulletHit(BulletHitEvent evnt)
+        {
+
+        }
+
+        public override void OnBulletHitBullet(BulletHitBulletEvent evnt)
+        {
+
+        }
+
+        public override void OnBulletMissed(BulletMissedEvent evnt)
+        {
+
+        }
+
+        public override void OnHitByBullet(HitByBulletEvent evnt)
+        {
+
+        }
+
+        public override void OnHitRobot(HitRobotEvent evnt)
+        {
+
+        }
+
+        public override void OnMouseClicked(MouseEvent e)
+        {
+            RotatePosition = new Vector2(e.X, e.Y);
+            RotatePositionSet = true;
+
+        }
+
+        public override void OnSkippedTurn(SkippedTurnEvent evnt)
+        {
+            base.OnSkippedTurn(evnt);
+
+            Log("======================[SKIPPED TURN]===========================");
         }
     }
 }
