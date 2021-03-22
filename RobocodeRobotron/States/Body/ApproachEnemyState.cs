@@ -7,11 +7,11 @@ using static RC.Logger;
 
 namespace RC.Body
 {
-    public class TrackEnemyApproachState : Body.State
+    public class ApproachEnemyState : Body.State
     {
         private TrackedEnemy Enemy = null;
 
-        public TrackEnemyApproachState(TrackedEnemy enemy)
+        public ApproachEnemyState(TrackedEnemy enemy)
         {
             Enemy = enemy;
         }

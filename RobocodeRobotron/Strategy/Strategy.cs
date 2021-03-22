@@ -8,24 +8,61 @@ namespace RC
 {
     static public class Strategy
     {
-        static public TrackedEnemy CalculateTrackedEnemy(TrackedEnemies trackedEnemies)
+        public const Double MinDistanceChange = 0.0;
+        public const long MaxBulletHitTimeDiff = 16 * 4;
+        public const Double DangerScoreThreshold = 0.2;
+
+        static public TrackedEnemy CalculateTrackedEnemy(TrackedEnemy CurrentEnemy, TrackedEnemies trackedEnemies, long time)
         {
+            Double maxDangerScore = Double.MinValue;
             Double minDistance = Double.MaxValue;
+
             TrackedEnemy trackedEnemy = null;
 
             foreach (KeyValuePair<String, TrackedEnemy> pair in trackedEnemies.GetEnemies())
             {
-                // Check distance
                 if (pair.Value.Distance < minDistance)
                 {
                     minDistance = pair.Value.Distance;
-
-                    Log("Tracking enemy " + pair.Value.Name + " at distance " + minDistance);
                     trackedEnemy = pair.Value;
                 }
+
+                // Calculate danger score
+                /*Double dangerScore = 0.0;
+                if (pair.Value.DamageToPlayer.Count > 0)
+                {
+                    foreach (TrackedEnemy.EnemyDamage enemyDamage in pair.Value.DamageToPlayer)
+                    {
+                        dangerScore += enemyDamage.Damage;
+                    }
+                    dangerScore /= pair.Value.DamageToPlayer.Count;
+                    dangerScore = 1.0;
+                }
+                else
+                {
+                    dangerScore = 1.0;
+                }
+                dangerScore /= pair.Value.Distance;
+
+                if (maxDangerScore <= 0.0 || dangerScore > (maxDangerScore + DangerScoreThreshold))
+                {
+                    trackedEnemy = pair.Value;
+                    maxDangerScore = dangerScore;
+                }*/
             }
 
-            return trackedEnemy;
+            if (CurrentEnemy == null || !trackedEnemies.GetEnemies().ContainsKey(CurrentEnemy.Name))
+            {
+                return trackedEnemy;
+            }
+            else if (trackedEnemy.Distance < (CurrentEnemy.Distance - MinDistanceChange))
+            {
+                return trackedEnemy;
+            }
+            else
+            {
+                return CurrentEnemy;
+            }
         }
 
         static public Vector2 CalculateAntigravity(Robotron robot, TrackedEnemy trackedEnemy)

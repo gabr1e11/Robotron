@@ -20,16 +20,16 @@ namespace RC.Behaviour
 
         public void Enter(BehaviourStateMachine behaviour)
         {
-            Enemy = Strategy.CalculateTrackedEnemy(Robot.TrackedEnemies);
+            Enemy = Strategy.CalculateTrackedEnemy(Enemy, Robot.TrackedEnemies, Robot.Time);
 
-            behaviour.ChangeBodyState(new Body.TrackEnemyApproachState(Enemy));
+            behaviour.ChangeBodyState(new Body.ApproachEnemyState(Enemy));
             behaviour.ChangeGunState(new Gun.TrackEnemyState(Enemy));
             behaviour.ChangeRadarState(new Radar.FullScanState());
         }
 
         public void Execute(BehaviourStateMachine behaviour)
         {
-            TrackedEnemy newTrackedEnemy = Strategy.CalculateTrackedEnemy(Robot.TrackedEnemies);
+            TrackedEnemy newTrackedEnemy = Strategy.CalculateTrackedEnemy(Enemy, Robot.TrackedEnemies, Robot.Time);
             if (newTrackedEnemy != Enemy)
             {
                 behaviour.ChangeState(new TrackEnemyState(Robot));
@@ -40,7 +40,7 @@ namespace RC.Behaviour
 
             if (Enemy.Distance <= SafeDistanceThreshold)
             {
-                behaviour.ChangeBodyState(new Body.TrackEnemyRotateAroundState(Enemy));
+                behaviour.ChangeBodyState(new Body.RotateAroundEnemyState(Enemy));
                 return;
             }
         }

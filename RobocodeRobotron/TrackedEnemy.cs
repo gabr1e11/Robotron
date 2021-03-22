@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 using Robocode;
 
@@ -13,6 +14,18 @@ namespace RC
     //
     public class TrackedEnemy
     {
+        public struct EnemyDamage
+        {
+            public long Time;
+            public Double Damage;
+
+            public EnemyDamage(long time, Double damage)
+            {
+                Time = time;
+                Damage = damage;
+            }
+        }
+
         public String Name { get; private set; }
         public double HeadingRadians { get; private set; } = 0.0;
         public double Energy { get; private set; } = 0.0;
@@ -22,10 +35,12 @@ namespace RC
 
         public Vector2 AntigravityVector { get; private set; }
         public Double Distance { get; private set; }
+        public List<EnemyDamage> DamageToPlayer;
 
         public TrackedEnemy(AdvancedRobot me, ScannedRobotEvent enemy)
         {
             Name = enemy.Name;
+            DamageToPlayer = new List<EnemyDamage>();
 
             UpdateFromRadar(me, enemy);
         }
@@ -63,6 +78,19 @@ namespace RC
 
             // Distance
             Distance = Util.CalculateDistance(me.X, me.Y, Position.X, Position.Y);
+        }
+
+        public void UpdateHitPlayer(HitByBulletEvent evnt)
+        {
+            Double damage = 4 * evnt.Bullet.Power;
+            if (evnt.Bullet.Power > 1.0)
+            {
+                damage += 2.0 * (evnt.Bullet.Power - 1.0);
+            }
+
+            DamageToPlayer.Add(new EnemyDamage(evnt.Time, damage));
+
+            DamageToPlayer.RemoveAll(item => (evnt.Time - item.Time) > Strategy.MaxBulletHitTimeDiff);
         }
     }
 }

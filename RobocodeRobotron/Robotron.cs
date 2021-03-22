@@ -14,16 +14,6 @@ using RC.Math;
 
 namespace RC
 {
-    enum RadarState
-    {
-        Discovery
-    }
-
-    enum MoveState
-    {
-        Wander
-    }
-
     // Robotron v0.3
     //
     // Robot for Picanhas competition
@@ -40,6 +30,9 @@ namespace RC
     //   - Antigravity works better now
     // v0.3
     //    - Added rotation around the enemy when attacking
+    // v0.4
+    //    - Tried to implement tracking enemies with a distance threshold
+    //      but it didn't improve
     //
     public class Robotron : AdvancedRobot
     {
@@ -60,8 +53,6 @@ namespace RC
             TrackedEnemies = new TrackedEnemies(this);
             BehaviourStateMachine = new Behaviour.BehaviourStateMachine(this, new Behaviour.WaitForTrackedEnemyState(this));
         }
-        private Vector2 RotatePosition;
-        private bool RotatePositionSet = false;
 
         public override void Run()
         {
@@ -71,11 +62,6 @@ namespace RC
 
             while (true)
             {
-                /*  if (RotatePositionSet)
-                  {
-                      RotateAroundPosition(RotatePosition, Utils.ToRadians(10.0), true);
-                  }*/
-
                 TrackedEnemies.Update();
                 BehaviourStateMachine.ProcessState();
                 Execute();
@@ -223,18 +209,11 @@ namespace RC
 
         public override void OnHitByBullet(HitByBulletEvent evnt)
         {
-
+            TrackedEnemies.OnHitByBullet(evnt);
         }
 
         public override void OnHitRobot(HitRobotEvent evnt)
         {
-
-        }
-
-        public override void OnMouseClicked(MouseEvent e)
-        {
-            RotatePosition = new Vector2(e.X, e.Y);
-            RotatePositionSet = true;
 
         }
 

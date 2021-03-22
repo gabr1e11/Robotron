@@ -8,11 +8,11 @@ using static RC.Logger;
 
 namespace RC.Body
 {
-    public class TrackEnemyRotateAroundState : Body.State
+    public class RotateAroundEnemyState : Body.State
     {
         private TrackedEnemy Enemy = null;
 
-        public TrackEnemyRotateAroundState(TrackedEnemy enemy)
+        public RotateAroundEnemyState(TrackedEnemy enemy)
         {
             Enemy = enemy;
         }

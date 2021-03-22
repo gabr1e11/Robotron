@@ -1,5 +1,7 @@
 ﻿using System;
 
+using Robocode;
+
 namespace RC.Behaviour
 {
     public class WaitForTrackedEnemyState : Behaviour.State
@@ -18,7 +20,7 @@ namespace RC.Behaviour
 
         public void Execute(BehaviourStateMachine behaviour)
         {
-            TrackedEnemy trackedEnemy = Strategy.CalculateTrackedEnemy(Robot.TrackedEnemies);
+            TrackedEnemy trackedEnemy = Strategy.CalculateTrackedEnemy(null, Robot.TrackedEnemies, Robot.Time);
             if (trackedEnemy != null)
             {
                 behaviour.ChangeState(new TrackEnemyState(Robot));

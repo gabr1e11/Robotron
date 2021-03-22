@@ -47,5 +47,14 @@ namespace RC
             Log("Enemy " + enemy.Name + " died");
             Enemies.Remove(enemy.Name);
         }
+
+        public void OnHitByBullet(HitByBulletEvent evnt)
+        {
+            if (Enemies.ContainsKey(evnt.Name))
+            {
+                Enemies[evnt.Name].UpdateHitPlayer(evnt);
+            }
+
+        }
     }
 }
