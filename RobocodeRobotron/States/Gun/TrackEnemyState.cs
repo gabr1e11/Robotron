@@ -22,7 +22,7 @@ namespace RC.Gun
         {
             robot.PointGunAt(Enemy);
 
-            if (System.Math.Abs(robot.GunTurnRemaining) < 5.0)
+            if (System.Math.Abs(robot.GunTurnRemaining) < 7.0)
             {
                 Double firePower = Strategy.CalculateFirePower(robot, Enemy);
 

@@ -10,9 +10,6 @@ namespace RC
 {
     public class Config
     {
-        // Minimum distance change to choose another enemy that is closer
-        public Double MinDistanceChange = 0.0;
-
         // Maximum number of turns to consider for danger score
         public long MaxBulletHitTimeDiff = 16 * 4;
 

@@ -23,7 +23,7 @@ namespace RC.Behaviour
         {
             behaviour.ChangeBodyState(new Body.ApproachEnemyState(Enemy));
             behaviour.ChangeGunState(new Gun.TrackEnemyState(Enemy));
-            behaviour.ChangeRadarState(new Radar.FullScanState());
+            behaviour.ChangeRadarState(new Radar.TrackEnemyState(Enemy));
 
             Player.SendTeamEvent(TeamEventType.TrackingEnemy, new Enemy(Enemy));
         }
@@ -41,11 +41,24 @@ namespace RC.Behaviour
                 behaviour.ChangeState(new ApproachEnemyState(Player, newTrackedEnemy));
                 return;
             }
-
+            if (Player.IsFlagSet(Robotron.EventFlags.BumpedEnemy))
+            {
+                Player.ClearFlag(Robotron.EventFlags.BumpedEnemy);
+                behaviour.ChangeState(new WaitForTrackedEnemyState(Player));
+                return;
+            }
             if (Strategy.IsEnemyCloseEnough(Player, Enemy))
             {
                 behaviour.ChangeState(new Behaviour.AttackEnemyState(Player, Enemy));
                 return;
+            }
+            if (Enemy.Time != Player.Time)
+            {
+                behaviour.ChangeRadarState(new Radar.FullScanState());
+            }
+            else
+            {
+                behaviour.ChangeRadarState(new Radar.TrackEnemyState(Enemy));
             }
         }
 

@@ -25,7 +25,7 @@ namespace RC.Behaviour
         {
             behaviour.ChangeBodyState(new Body.RotateAroundEnemyState(Enemy, ClockwiseTurnEnabled));
             behaviour.ChangeGunState(new Gun.TrackEnemyState(Enemy));
-            behaviour.ChangeRadarState(new Radar.FullScanState());
+            behaviour.ChangeRadarState(new Radar.TrackEnemyState(Enemy));
         }
 
         public void Execute(BehaviourStateMachine behaviour)
@@ -63,6 +63,14 @@ namespace RC.Behaviour
                 LastRotationChangeTurn = Player.Time;
 
                 Player.ClearFlag(Robotron.EventFlags.HitWall);
+            }
+            if (Enemy.Time != Player.Time)
+            {
+                behaviour.ChangeRadarState(new Radar.FullScanState());
+            }
+            else
+            {
+                behaviour.ChangeRadarState(new Radar.TrackEnemyState(Enemy));
             }
         }
 

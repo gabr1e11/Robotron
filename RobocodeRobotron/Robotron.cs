@@ -46,6 +46,8 @@ namespace RC
     // v0.9
     //    - Notify other members of currently tracked enemy and
     //      when we stop tracking it to avoid tracking the same
+    // v1.0
+    //    - Added radar locking when tracking an enemy
     //
     public class Robotron : TeamRobot
     {
@@ -64,7 +66,7 @@ namespace RC
         // INIT
         private void Init()
         {
-            SetColors(Color.Red, Color.OrangeRed, Color.LightGoldenrodYellow);
+            SetColors(Color.LawnGreen, Color.DarkOliveGreen, Color.ForestGreen);
 
             IsAdjustGunForRobotTurn = true;
             IsAdjustRadarForGunTurn = true;
@@ -81,12 +83,6 @@ namespace RC
         private void ConfigureStrategy()
         {
             Config config = new Config();
-
-            // Minimum distance change to choose another enemy that is closer
-            config.MinDistanceChange = 0.0;
-
-            // Maximum number of turns to consider for danger score
-            config.MaxBulletHitTimeDiff = 16 * 4;
 
             // Minimum energy an enemy has to have for us to ram into it
             config.MinEnergyForRamming = 40.0;
@@ -327,7 +323,10 @@ namespace RC
                         if (!IsTeamLeader)
                         {
                             TrackedEnemies.ClearBlacklistedEnemies();
-                            TrackedEnemies.AddBlacklistedEnemy(teamEvent.Enemy);
+                            if (Others > 1)
+                            {
+                                TrackedEnemies.AddBlacklistedEnemy(teamEvent.Enemy);
+                            }
                         }
                         break;
                     case TeamEventType.SearchingForEnemy:
