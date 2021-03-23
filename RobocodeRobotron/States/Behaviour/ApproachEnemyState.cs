@@ -24,6 +24,8 @@ namespace RC.Behaviour
             behaviour.ChangeBodyState(new Body.ApproachEnemyState(Enemy));
             behaviour.ChangeGunState(new Gun.TrackEnemyState(Enemy));
             behaviour.ChangeRadarState(new Radar.FullScanState());
+
+            Player.SendTeamEvent(TeamEventType.TrackingEnemy, new Enemy(Enemy));
         }
 
         public void Execute(BehaviourStateMachine behaviour)

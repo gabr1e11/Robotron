@@ -34,5 +34,17 @@ namespace RC
             Position = Util.CalculateXYPos(player.X, player.Y, enemy.BearingRadians + player.HeadingRadians, enemy.Distance);
         }
 
+        public Enemy(TrackedEnemy enemy)
+        {
+            Name = enemy.Name;
+            HeadingRadians = enemy.HeadingRadians;
+            BearingRadians = enemy.BearingRadians;
+            Energy = enemy.Energy;
+            Velocity = enemy.Velocity;
+            Time = enemy.Time;
+            Distance = enemy.Distance;
+            Position = enemy.Position;
+        }
+
     }
 }

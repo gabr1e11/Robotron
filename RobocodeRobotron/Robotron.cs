@@ -43,6 +43,9 @@ namespace RC
     // v0.8
     //    - Added tracking score formula
     //    - Added strategy configuration
+    // v0.9
+    //    - Notify other members of currently tracked enemy and
+    //      when we stop tracking it to avoid tracking the same
     //
     public class Robotron : TeamRobot
     {
@@ -256,7 +259,7 @@ namespace RC
             Enemy scannedEnemy = new Enemy(this, evnt);
 
             TrackedEnemies.OnScannedRobot(scannedEnemy);
-            BroadcastMessage(new TeamEvent(TeamEventType.OnScannedRobot, scannedEnemy));
+            BroadcastMessage(new TeamEvent(TeamEventType.EnemyScanned, scannedEnemy));
         }
 
         public override void OnRobotDeath(RobotDeathEvent enemy)
@@ -317,11 +320,29 @@ namespace RC
 
                 switch (teamEvent.Type)
                 {
-                    case TeamEventType.OnScannedRobot:
+                    case TeamEventType.EnemyScanned:
                         TrackedEnemies.OnScannedRobot(teamEvent.Enemy);
+                        break;
+                    case TeamEventType.TrackingEnemy:
+                        if (!IsTeamLeader)
+                        {
+                            TrackedEnemies.ClearBlacklistedEnemies();
+                            TrackedEnemies.AddBlacklistedEnemy(teamEvent.Enemy);
+                        }
+                        break;
+                    case TeamEventType.SearchingForEnemy:
+                        if (!IsTeamLeader)
+                        {
+                            TrackedEnemies.ClearBlacklistedEnemies();
+                        }
                         break;
                 }
             }
+        }
+
+        public void SendTeamEvent(TeamEventType type, Enemy enemy)
+        {
+            BroadcastMessage(new TeamEvent(type, enemy));
         }
     }
 }

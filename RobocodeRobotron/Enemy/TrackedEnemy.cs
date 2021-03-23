@@ -28,10 +28,11 @@ namespace RC
 
         public String Name { get; private set; }
         public double HeadingRadians { get; private set; } = 0.0;
+        public double BearingRadians { get; private set; } = 0.0;
         public double Energy { get; private set; } = 0.0;
         public double Velocity { get; private set; } = 0.0;
         public Vector2 Position { get; private set; } = new Vector2();
-        public long LastTurnSeen { get; private set; } = 0;
+        public long Time { get; private set; } = 0;
 
         public Vector2 AntigravityVector { get; private set; }
         public Double Distance { get; private set; }
@@ -58,13 +59,14 @@ namespace RC
         public void UpdateFromRadar(Robotron player, Enemy enemy)
         {
             HeadingRadians = enemy.HeadingRadians;
+            BearingRadians = enemy.BearingRadians;
             Energy = enemy.Energy;
             Velocity = enemy.Velocity;
             Position = enemy.Position;
 
             Log("Enemy " + Name + " is at position " + Position);
             Log("  My position is " + new Vector2(player.X, player.Y));
-            LastTurnSeen = enemy.Time;
+            Time = enemy.Time;
 
             UpdateFromPlayer(player);
         }
@@ -103,7 +105,7 @@ namespace RC
         private void CalculateDangerScore(long time)
         {
             // Remove old hits
-            DamageToPlayer.RemoveAll(item => (time - item.Time) > Strategy.MaxBulletHitTimeDiff);
+            DamageToPlayer.RemoveAll(item => (time - item.Time) > Strategy.Config.MaxBulletHitTimeDiff);
 
             // Calculate danger score
             DangerScore = 0.0;

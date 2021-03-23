@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using Robocode;
 
@@ -11,11 +12,14 @@ namespace RC
     {
         private Robotron Player = null;
         private Dictionary<String, TrackedEnemy> Enemies;
+        private List<String> BlacklistedEnemies;
 
         public TrackedEnemies(Robotron player)
         {
             Player = player;
-            Enemies = new Dictionary<string, TrackedEnemy>(Player.Others);
+            Enemies = new Dictionary<String, TrackedEnemy>(Player.Others);
+
+            BlacklistedEnemies = new List<String>();
         }
 
         public void Update()
@@ -26,9 +30,28 @@ namespace RC
             }
         }
 
-        public Dictionary<String, TrackedEnemy> GetEnemies()
+        public List<TrackedEnemy> GetEnemies()
         {
-            return Enemies;
+            List<TrackedEnemy> enemies = Enemies.Values.ToList<TrackedEnemy>();
+
+            enemies.RemoveAll(item => BlacklistedEnemies.Contains(item.Name));
+
+            return enemies;
+        }
+
+        public void AddBlacklistedEnemy(Enemy enemy)
+        {
+            BlacklistedEnemies.Add(enemy.Name);
+        }
+
+        public void RemoveBlacklistedEnemy(Enemy enemy)
+        {
+            BlacklistedEnemies.Remove(enemy.Name);
+        }
+
+        public void ClearBlacklistedEnemies()
+        {
+            BlacklistedEnemies.Clear();
         }
 
         public void OnScannedRobot(Enemy enemy)

@@ -10,7 +10,9 @@ namespace RC
 {
     public enum TeamEventType
     {
-        OnScannedRobot
+        EnemyScanned,
+        TrackingEnemy,
+        SearchingForEnemy
     }
 
     [Serializable()]

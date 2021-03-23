@@ -10,7 +10,7 @@ namespace RC
 {
     static public class Strategy
     {
-        private static Config Config;
+        public static Config Config { get; private set; }
 
         static public void SetConfig(Config config)
         {
@@ -63,7 +63,7 @@ namespace RC
             }
 
             // Calculate tracking score
-            List<TrackedEnemy> enemies = robot.TrackedEnemies.GetEnemies().Values.ToList<TrackedEnemy>();
+            List<TrackedEnemy> enemies = robot.TrackedEnemies.GetEnemies();
             foreach (TrackedEnemy enemy in enemies)
             {
                 enemy.TrackingScore = Config.TrackingScoreDistanceWeight * enemy.Distance +
@@ -79,9 +79,9 @@ namespace RC
         {
             Vector2 antigravity = new Vector2();
 
-            foreach (KeyValuePair<String, TrackedEnemy> pair in robot.TrackedEnemies.GetEnemies())
+            foreach (TrackedEnemy enemy in robot.TrackedEnemies.GetEnemies())
             {
-                if (trackedEnemy != null && trackedEnemy == pair.Value)
+                if (trackedEnemy != null && trackedEnemy == enemy)
                 {
                     // For the tracked enemy instead go towards it
                     Vector2 gravityVectorNorm = new Vector2(trackedEnemy.Position.X - robot.X, trackedEnemy.Position.Y - robot.Y) * 0.8;
@@ -93,7 +93,7 @@ namespace RC
                 }
                 else
                 {
-                    antigravity += pair.Value.AntigravityVector;
+                    antigravity += enemy.AntigravityVector;
                 }
             }
 

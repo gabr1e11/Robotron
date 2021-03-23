@@ -16,6 +16,10 @@ namespace RC.Behaviour
         public void Enter(BehaviourStateMachine behaviour)
         {
             behaviour.ChangeRadarState(new Radar.FullScanState());
+            behaviour.ChangeGunState(new Gun.NoopState());
+            behaviour.ChangeBodyState(new Body.AntigravityState(null));
+
+            Player.SendTeamEvent(TeamEventType.SearchingForEnemy, null);
         }
 
         public void Execute(BehaviourStateMachine behaviour)
