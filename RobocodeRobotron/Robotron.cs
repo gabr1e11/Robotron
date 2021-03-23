@@ -38,8 +38,11 @@ namespace RC
     //    - Avoid walls when rotating around an enemy
     //    - Approach enemy again if it is too far away
     // v0.7
-    //    - Implemented team quadrant at start
+    //    - Team members go to their quadrants at the beginning
     //    - Team members notify each other of scanned robots
+    // v0.8
+    //    - Added tracking score formula
+    //    - Added strategy configuration
     //
     public class Robotron : TeamRobot
     {
