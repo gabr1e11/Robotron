@@ -34,16 +34,24 @@ namespace RC
     //    - Tried to implement tracking enemies with a distance threshold
     //      but it didn't improve
     // v0.5
-    //    - Implemented ramming for finishing robots
+    //    - Ramming for finishing robots
+    // v0.6
+    //    - Avoid walls when rotating around an enemy
+    //    - Approach enemy again if it is too far away
     //
     public class Robotron : TeamRobot
     {
+        [Flags]
+        public enum EventFlags : short
+        {
+            HitWall = 0x01
+        }
+
         public Behaviour.BehaviourStateMachine BehaviourStateMachine;
         public TrackedEnemies TrackedEnemies;
+        public EventFlags Events { get; private set; }
 
-        //
-        // Robocode init + main loop
-        //
+        // INIT
         private void Init()
         {
             SetColors(Color.Red, Color.OrangeRed, Color.LightGoldenrodYellow);
@@ -56,6 +64,7 @@ namespace RC
             BehaviourStateMachine = new Behaviour.BehaviourStateMachine(this, new Behaviour.WaitForTrackedEnemyState(this));
         }
 
+        // MAIN LOOP
         public override void Run()
         {
             base.Run();
@@ -71,6 +80,26 @@ namespace RC
         }
 
         // CONTROL METHODS
+        public void SetFlag(EventFlags evt)
+        {
+            Events |= evt;
+        }
+
+        public bool IsFlagSet(EventFlags evt)
+        {
+            return (Events & evt) != 0x0;
+        }
+
+        public void ClearFlags()
+        {
+            Events = 0x0;
+        }
+
+        public void ClearFlag(EventFlags evt)
+        {
+            Events &= ~evt;
+        }
+
         public void GoToPosition(Vector2 position)
         {
             Vector2 targetVector = new Vector2(position.X - X, position.Y - Y);
@@ -145,7 +174,15 @@ namespace RC
                 speed = 3 * Rules.MAX_VELOCITY;
             }
 
-            SetAhead(frontBackMultiplier * speed);
+            if (clockwise)
+            {
+                SetAhead(frontBackMultiplier * speed);
+            }
+            else
+            {
+                SetBack(frontBackMultiplier * speed);
+            }
+
             SetTurnRightRadians(turnAngle * 3.0);
 
             Log("Current Speed=" + Velocity);
@@ -192,6 +229,7 @@ namespace RC
             base.OnHitWall(evnt);
 
             Log("HIT A WALL");
+            SetFlag(EventFlags.HitWall);
         }
 
         public override void OnBulletHit(BulletHitEvent evnt)

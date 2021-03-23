@@ -28,6 +28,12 @@ namespace RC
             return enemy.Distance <= Strategy.GetSafeDistance(player);
         }
 
+        // Safe distance to keep from an enemy
+        static public bool IsEnemyTooFar(Robotron player, TrackedEnemy enemy)
+        {
+            return enemy.Distance >= 2 * Strategy.GetSafeDistance(player);
+        }
+
         static public bool ShouldRamEnemy(Robotron player, TrackedEnemy enemy)
         {
             return ((player.Energy * player.Energy) > 2 * (enemy.Energy * enemy.Energy)) &&
@@ -70,7 +76,7 @@ namespace RC
             {
                 return trackedEnemy;
             }
-            else if (trackedEnemy.Distance < (currentEnemy.Distance - MinDistanceChange))
+            else if (trackedEnemy != null && trackedEnemy.Distance < (currentEnemy.Distance - MinDistanceChange))
             {
                 return trackedEnemy;
             }
