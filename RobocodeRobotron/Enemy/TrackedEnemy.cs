@@ -37,6 +37,8 @@ namespace RC
         public Double Distance { get; private set; }
         public Double DangerScore = 0.0;
 
+        public Double TrackingScore = 0.0;
+
         private List<EnemyDamage> DamageToPlayer;
 
         public TrackedEnemy(Robotron player, Enemy enemy)

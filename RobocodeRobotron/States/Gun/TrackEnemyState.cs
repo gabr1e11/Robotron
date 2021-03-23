@@ -1,5 +1,7 @@
 ﻿using System;
 
+using static RC.Logger;
+
 namespace RC.Gun
 {
     public class TrackEnemyState : Gun.State
@@ -22,7 +24,10 @@ namespace RC.Gun
 
             if (System.Math.Abs(robot.GunTurnRemaining) < 5.0)
             {
-                Strategy.SmartFire(robot, Enemy);
+                Double firePower = Strategy.CalculateFirePower(robot, Enemy);
+
+                Log("Firing Enemy: " + Enemy.Name + " with power: " + firePower + "(Gun heat = " + robot.GunHeat + ")");
+                robot.Fire(firePower);
             }
         }
 

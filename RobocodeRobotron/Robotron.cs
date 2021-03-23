@@ -223,7 +223,7 @@ namespace RC
             Enemy scannedEnemy = new Enemy(this, evnt);
 
             TrackedEnemies.OnScannedRobot(scannedEnemy);
-            BroadcastMessage(new TeamEvent("OnScannedRobot", scannedEnemy));
+            BroadcastMessage(new TeamEvent(TeamEventType.OnScannedRobot, scannedEnemy));
         }
 
         public override void OnRobotDeath(RobotDeathEvent enemy)
@@ -282,9 +282,9 @@ namespace RC
             {
                 TeamEvent teamEvent = (TeamEvent)evnt.Message;
 
-                switch (teamEvent.Name)
+                switch (teamEvent.Type)
                 {
-                    case "OnScannedRobot":
+                    case TeamEventType.OnScannedRobot:
                         TrackedEnemies.OnScannedRobot(teamEvent.Enemy);
                         break;
                 }

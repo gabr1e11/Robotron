@@ -8,16 +8,20 @@ using RC.Math;
 
 namespace RC
 {
-    // Enemy
+    public enum TeamEventType
+    {
+        OnScannedRobot
+    }
+
     [Serializable()]
     public class TeamEvent
     {
-        public String Name;
+        public TeamEventType Type;
         public Enemy Enemy;
 
-        public TeamEvent(String name, Enemy enemy)
+        public TeamEvent(TeamEventType type, Enemy enemy)
         {
-            Name = name;
+            Type = type;
             Enemy = enemy;
         }
     }

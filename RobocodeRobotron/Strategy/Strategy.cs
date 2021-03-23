@@ -22,6 +22,10 @@ namespace RC
         // Minimum energy an enemy has to have for us to ram into it
         public const Double MinEnergyForRamming = 40.0;
 
+        // Minimum distance for full energy bullet
+        public const Double MinDistanceHighEnergyBullet = 50.0;
+        public const Double MaxDistanceLowEnergyBullet = 500.0;
+
         // Team rules
         public const int TeamMembersCount = 2;
         public const Double InitPosAllowedDistance = 50.0f;
@@ -30,7 +34,7 @@ namespace RC
         static public Vector2 GetTeamMemberInitPos(Robotron player)
         {
             int index = Util.GetTeamBotNumber(player.Name);
-            return new Vector2(index * player.BattleFieldWidth / (TeamMembersCount + 1.0), player.BattleFieldHeight / 2.0);
+            return new Vector2(index * player.BattleFieldWidth / (player.Teammates.Length + 2.0), player.BattleFieldHeight / 2.0);
         }
 
         static public bool IsInitPosCloseEnough(Robotron player)
@@ -66,43 +70,20 @@ namespace RC
 
         static public TrackedEnemy CalculateTrackedEnemy(TrackedEnemy currentEnemy, Robotron robot)
         {
-            TrackedEnemy trackedEnemy = null;
-
             if (robot.TrackedEnemies.GetEnemies().Count == 0)
             {
                 return null;
             }
 
-            List<TrackedEnemy> enemiesDistance = robot.TrackedEnemies.GetEnemies().Values.ToList<TrackedEnemy>();
-            List<TrackedEnemy> enemiesDanger = robot.TrackedEnemies.GetEnemies().Values.ToList<TrackedEnemy>();
-
-            enemiesDistance.Sort((itemA, itemB) => itemA.Distance.CompareTo(itemB.Distance));
-            enemiesDanger.Sort((itemA, itemB) => itemB.DangerScore.CompareTo(itemA.DangerScore));
-
-            Double MaxDangerScore = enemiesDanger.ElementAt(0).DangerScore;
-
-            // Select the closest that is not the most dangerous
-            foreach (TrackedEnemy enemy in enemiesDistance)
+            // Calculate tracking score
+            List<TrackedEnemy> enemies = robot.TrackedEnemies.GetEnemies().Values.ToList<TrackedEnemy>();
+            foreach (TrackedEnemy enemy in enemies)
             {
-                if (!robot.IsTeammate(enemy.Name) && (!UseDangerScore || MaxDangerScore == 0.0 || enemy.DangerScore < MaxDangerScore))
-                {
-                    trackedEnemy = enemy;
-                    break;
-                }
+                enemy.TrackingScore = 1.0 / enemy.Distance; //(1.0 + enemy.DangerScore) / (enemy.Distance * enemy.Energy);
             }
 
-            if (currentEnemy == null || !robot.TrackedEnemies.GetEnemies().ContainsKey(currentEnemy.Name))
-            {
-                return trackedEnemy;
-            }
-            else if (trackedEnemy != null && trackedEnemy.Distance < (currentEnemy.Distance - MinDistanceChange))
-            {
-                return trackedEnemy;
-            }
-            else
-            {
-                return currentEnemy;
-            }
+            enemies.Sort((itemA, itemB) => itemB.TrackingScore.CompareTo(itemA.TrackingScore));
+            return enemies.ElementAt(0); // return higher score
         }
 
         static public Vector2 CalculateAntigravity(Robotron robot, TrackedEnemy trackedEnemy)
@@ -116,7 +97,7 @@ namespace RC
                     // For the tracked enemy instead go towards it
                     Vector2 gravityVectorNorm = new Vector2(trackedEnemy.Position.X - robot.X, trackedEnemy.Position.Y - robot.Y) * 0.8;
 
-                    // TODO: Adjust amounnf of movement, don't get too close
+                    // TODO: Adjust amounnt of movement, don't get too close
                     gravityVectorNorm *= 0.8;
 
                     antigravity += gravityVectorNorm;
@@ -131,26 +112,25 @@ namespace RC
             return antigravity;
         }
 
-        static public void SmartFire(Robotron robot, TrackedEnemy enemy)
+        static public Double CalculateFirePower(Robotron robot, TrackedEnemy enemy)
         {
             double firePower = 0.1;
             double enemyDistance = Util.CalculateDistance(robot.X, robot.Y, enemy.Position.X, enemy.Position.Y);
 
-            if (enemyDistance > 500.0)
+            if (enemyDistance > MaxDistanceLowEnergyBullet)
             {
                 firePower = 1;
             }
-            else if (enemyDistance < 20.0)
+            else if (enemyDistance < MinDistanceHighEnergyBullet)
             {
                 firePower = 3.0;
             }
             else
             {
-                firePower = 1.0 + 2.0 * (500.0 - enemyDistance) / 480.0;
+                firePower = 1.0 + 2.0 * (MaxDistanceLowEnergyBullet - enemyDistance) / (MaxDistanceLowEnergyBullet - MinDistanceHighEnergyBullet);
             }
 
-            Log("Firing Enemy: " + enemy.Name + " with power: " + firePower + "(Gun heat = " + robot.GunHeat + ")");
-            robot.Fire(firePower);
+            return firePower;
         }
 
         static public bool IsPositionSafeFromWalls(Robotron robot, Vector2 position)

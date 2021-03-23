@@ -9,20 +9,20 @@ namespace RC
 {
     public class TrackedEnemies
     {
-        private Robotron Robot = null;
+        private Robotron Player = null;
         private Dictionary<String, TrackedEnemy> Enemies;
 
-        public TrackedEnemies(Robotron robot)
+        public TrackedEnemies(Robotron player)
         {
-            Robot = robot;
-            Enemies = new Dictionary<string, TrackedEnemy>(Robot.Others);
+            Player = player;
+            Enemies = new Dictionary<string, TrackedEnemy>(Player.Others);
         }
 
         public void Update()
         {
             foreach (KeyValuePair<String, TrackedEnemy> pair in Enemies)
             {
-                pair.Value.UpdateForCurrentTurn(Robot);
+                pair.Value.UpdateForCurrentTurn(Player);
             }
         }
 
@@ -33,13 +33,18 @@ namespace RC
 
         public void OnScannedRobot(Enemy enemy)
         {
+            if (Player.IsTeammate(enemy.Name))
+            {
+                return;
+            }
+
             Log("Enemy " + enemy.Name + " detected at distance " + enemy.Distance);
             if (!Enemies.ContainsKey(enemy.Name))
             {
-                Enemies[enemy.Name] = new TrackedEnemy(Robot, enemy);
+                Enemies[enemy.Name] = new TrackedEnemy(Player, enemy);
             }
 
-            Enemies[enemy.Name].UpdateFromRadar(Robot, enemy);
+            Enemies[enemy.Name].UpdateFromRadar(Player, enemy);
         }
 
         public void OnRobotDeath(RobotDeathEvent enemy)

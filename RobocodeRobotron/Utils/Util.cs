@@ -48,7 +48,7 @@ namespace RC
 
         static public int GetTeamBotNumber(String name)
         {
-            String n = "0";
+            String n = "1";
             int low = name.IndexOf("(") + 1;
             int hi = name.LastIndexOf(")");
             if (low >= 0 && hi >= 0) { n = name.Substring(low, hi - low); }

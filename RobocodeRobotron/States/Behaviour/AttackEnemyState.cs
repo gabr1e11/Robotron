@@ -31,6 +31,11 @@ namespace RC.Behaviour
         public void Execute(BehaviourStateMachine behaviour)
         {
             TrackedEnemy newTrackedEnemy = Strategy.CalculateTrackedEnemy(Enemy, Player);
+            if (newTrackedEnemy == null)
+            {
+                behaviour.ChangeState(new WaitForTrackedEnemyState(Player));
+                return;
+            }
             if (newTrackedEnemy != Enemy)
             {
                 behaviour.ChangeState(new ApproachEnemyState(Player, newTrackedEnemy));
