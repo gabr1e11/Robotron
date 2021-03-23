@@ -10,25 +10,12 @@ namespace RC
 {
     static public class Strategy
     {
-        // Enables/disables the use of the danger score
-        public const bool UseDangerScore = true;
+        private static Config Config;
 
-        // Minimum distance change to choose another enemy that is closer
-        public const Double MinDistanceChange = 0.0;
-
-        // Maximum number of turns to consider for danger score
-        public const long MaxBulletHitTimeDiff = 16 * 4;
-
-        // Minimum energy an enemy has to have for us to ram into it
-        public const Double MinEnergyForRamming = 40.0;
-
-        // Minimum distance for full energy bullet
-        public const Double MinDistanceHighEnergyBullet = 50.0;
-        public const Double MaxDistanceLowEnergyBullet = 500.0;
-
-        // Team rules
-        public const int TeamMembersCount = 2;
-        public const Double InitPosAllowedDistance = 50.0f;
+        static public void SetConfig(Config config)
+        {
+            Config = config;
+        }
 
         // Team members initial positions
         static public Vector2 GetTeamMemberInitPos(Robotron player)
@@ -42,7 +29,7 @@ namespace RC
             Vector2 targetPos = GetTeamMemberInitPos(player);
             Vector2 currentPos = new Vector2(player.X, player.Y);
 
-            return (targetPos - currentPos).Module() <= InitPosAllowedDistance;
+            return (targetPos - currentPos).Module() <= Config.InitPosAllowedDistance;
         }
 
         // Safe distance to keep from an enemy
@@ -60,7 +47,7 @@ namespace RC
         static public bool ShouldRamEnemy(Robotron player, TrackedEnemy enemy)
         {
             return ((player.Energy * player.Energy) > 2 * (enemy.Energy * enemy.Energy)) &&
-                (enemy.Energy < Strategy.MinEnergyForRamming);
+                (enemy.Energy < Config.MinEnergyForRamming);
         }
 
         static public Double GetSafeDistance(Robotron robot)
@@ -79,11 +66,13 @@ namespace RC
             List<TrackedEnemy> enemies = robot.TrackedEnemies.GetEnemies().Values.ToList<TrackedEnemy>();
             foreach (TrackedEnemy enemy in enemies)
             {
-                enemy.TrackingScore = 1.0 / enemy.Distance; //(1.0 + enemy.DangerScore) / (enemy.Distance * enemy.Energy);
+                enemy.TrackingScore = Config.TrackingScoreDistanceWeight * enemy.Distance +
+                    Config.TrackingScoreDangerWeight * enemy.DangerScore +
+                    Config.TrackingScoreEnergyWeight * enemy.Energy;
             }
 
-            enemies.Sort((itemA, itemB) => itemB.TrackingScore.CompareTo(itemA.TrackingScore));
-            return enemies.ElementAt(0); // return higher score
+            enemies.Sort((itemA, itemB) => itemA.TrackingScore.CompareTo(itemB.TrackingScore));
+            return enemies.ElementAt(0);
         }
 
         static public Vector2 CalculateAntigravity(Robotron robot, TrackedEnemy trackedEnemy)
@@ -117,17 +106,17 @@ namespace RC
             double firePower = 0.1;
             double enemyDistance = Util.CalculateDistance(robot.X, robot.Y, enemy.Position.X, enemy.Position.Y);
 
-            if (enemyDistance > MaxDistanceLowEnergyBullet)
+            if (enemyDistance > Config.MaxDistanceLowEnergyBullet)
             {
                 firePower = 1;
             }
-            else if (enemyDistance < MinDistanceHighEnergyBullet)
+            else if (enemyDistance < Config.MinDistanceHighEnergyBullet)
             {
                 firePower = 3.0;
             }
             else
             {
-                firePower = 1.0 + 2.0 * (MaxDistanceLowEnergyBullet - enemyDistance) / (MaxDistanceLowEnergyBullet - MinDistanceHighEnergyBullet);
+                firePower = 1.0 + 2.0 * (Config.MaxDistanceLowEnergyBullet - enemyDistance) / (Config.MaxDistanceLowEnergyBullet - Config.MinDistanceHighEnergyBullet);
             }
 
             return firePower;

@@ -68,6 +68,36 @@ namespace RC
             BehaviourStateMachine = new Behaviour.BehaviourStateMachine(this, new Behaviour.GoToQuadrantState(this));
 
             IsTeamLeader = (Util.GetTeamBotNumber(Name) == 1);
+
+            ConfigureStrategy();
+        }
+
+        private void ConfigureStrategy()
+        {
+            Config config = new Config();
+
+            // Minimum distance change to choose another enemy that is closer
+            config.MinDistanceChange = 0.0;
+
+            // Maximum number of turns to consider for danger score
+            config.MaxBulletHitTimeDiff = 16 * 4;
+
+            // Minimum energy an enemy has to have for us to ram into it
+            config.MinEnergyForRamming = 40.0;
+
+            // Minimum distance for full energy bullet
+            config.MinDistanceHighEnergyBullet = 50.0;
+            config.MaxDistanceLowEnergyBullet = 500.0;
+
+            // Weights for the tracking score formula
+            config.TrackingScoreDistanceWeight = 1.0;
+            config.TrackingScoreDangerWeight = 0.0;
+            config.TrackingScoreEnergyWeight = 0.0;
+
+            // Team rules
+            config.InitPosAllowedDistance = 50.0f;
+
+            Strategy.SetConfig(config);
         }
 
         // MAIN LOOP
