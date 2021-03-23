@@ -22,7 +22,7 @@ namespace RC
         {
             foreach (KeyValuePair<String, TrackedEnemy> pair in Enemies)
             {
-                pair.Value.UpdateFromPlayer(Robot);
+                pair.Value.UpdateForCurrentTurn(Robot);
             }
         }
 

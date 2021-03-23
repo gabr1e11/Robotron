@@ -33,8 +33,10 @@ namespace RC
     // v0.4
     //    - Tried to implement tracking enemies with a distance threshold
     //      but it didn't improve
+    // v0.5
+    //    - Implemented ramming for finishing robots
     //
-    public class Robotron : AdvancedRobot
+    public class Robotron : TeamRobot
     {
         public Behaviour.BehaviourStateMachine BehaviourStateMachine;
         public TrackedEnemies TrackedEnemies;

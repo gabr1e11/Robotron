@@ -26,9 +26,7 @@ namespace RC.Body
             Vector2 robotXY = new Vector2(robot.X, robot.Y);
             Vector2 robotEnemyVectorNorm = (Enemy.Position - robotXY).GetNormalized();
 
-            Double SafeDistanceThreshold = 3.0 * robot.Width + Physics.Constants.MaxTankMovementPerTurn;
-            Double safeDistance = Enemy.Distance - SafeDistanceThreshold;
-
+            Double safeDistance = Enemy.Distance - Strategy.GetSafeDistance(robot);
             Vector2 targetXY = robotXY + robotEnemyVectorNorm * safeDistance;
 
             robot.GoToPosition(targetXY);

@@ -20,10 +20,10 @@ namespace RC.Behaviour
 
         public void Execute(BehaviourStateMachine behaviour)
         {
-            TrackedEnemy trackedEnemy = Strategy.CalculateTrackedEnemy(null, Robot.TrackedEnemies, Robot.Time);
+            TrackedEnemy trackedEnemy = Strategy.CalculateTrackedEnemy(null, Robot);
             if (trackedEnemy != null)
             {
-                behaviour.ChangeState(new TrackEnemyState(Robot));
+                behaviour.ChangeState(new ApproachEnemyState(Robot, trackedEnemy));
                 return;
             }
         }

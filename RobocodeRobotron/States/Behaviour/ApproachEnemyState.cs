@@ -8,20 +8,19 @@ using RC.Math;
 
 namespace RC.Behaviour
 {
-    public class TrackEnemyState : Behaviour.State
+    public class ApproachEnemyState : Behaviour.State
     {
-        private Robotron Robot = null;
+        private Robotron Player = null;
         private TrackedEnemy Enemy = null;
 
-        public TrackEnemyState(Robotron robot)
+        public ApproachEnemyState(Robotron player, TrackedEnemy enemy)
         {
-            Robot = robot;
+            Player = player;
+            Enemy = enemy;
         }
 
         public void Enter(BehaviourStateMachine behaviour)
         {
-            Enemy = Strategy.CalculateTrackedEnemy(Enemy, Robot.TrackedEnemies, Robot.Time);
-
             behaviour.ChangeBodyState(new Body.ApproachEnemyState(Enemy));
             behaviour.ChangeGunState(new Gun.TrackEnemyState(Enemy));
             behaviour.ChangeRadarState(new Radar.FullScanState());
@@ -29,18 +28,16 @@ namespace RC.Behaviour
 
         public void Execute(BehaviourStateMachine behaviour)
         {
-            TrackedEnemy newTrackedEnemy = Strategy.CalculateTrackedEnemy(Enemy, Robot.TrackedEnemies, Robot.Time);
+            TrackedEnemy newTrackedEnemy = Strategy.CalculateTrackedEnemy(Enemy, Player);
             if (newTrackedEnemy != Enemy)
             {
-                behaviour.ChangeState(new TrackEnemyState(Robot));
+                behaviour.ChangeState(new ApproachEnemyState(Player, newTrackedEnemy));
                 return;
             }
 
-            Double SafeDistanceThreshold = 5.0 * Robot.Width + Physics.Constants.MaxTankMovementPerTurn;
-
-            if (Enemy.Distance <= SafeDistanceThreshold)
+            if (Strategy.IsEnemyCloseEnough(Player, Enemy))
             {
-                behaviour.ChangeBodyState(new Body.RotateAroundEnemyState(Enemy));
+                behaviour.ChangeState(new Behaviour.AttackEnemyState(Player, Enemy));
                 return;
             }
         }

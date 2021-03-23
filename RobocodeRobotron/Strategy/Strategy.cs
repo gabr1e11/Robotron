@@ -1,67 +1,82 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using static RC.Logger;
 using RC.Math;
+using Robocode;
 
 namespace RC
 {
     static public class Strategy
     {
+        // Enables/disables the use of the danger score
+        public const bool UseDangerScore = true;
+
+        // Minimum distance change to choose another enemy that is closer
         public const Double MinDistanceChange = 0.0;
+
+        // Maximum number of turns to consider for danger score
         public const long MaxBulletHitTimeDiff = 16 * 4;
-        public const Double DangerScoreThreshold = 0.2;
 
-        static public TrackedEnemy CalculateTrackedEnemy(TrackedEnemy CurrentEnemy, TrackedEnemies trackedEnemies, long time)
+        // Minimum energy an enemy has to have for us to ram into it
+        public const Double MinEnergyForRamming = 40.0;
+
+        // Safe distance to keep from an enemy
+        static public bool IsEnemyCloseEnough(Robotron player, TrackedEnemy enemy)
         {
-            Double maxDangerScore = Double.MinValue;
-            Double minDistance = Double.MaxValue;
+            return enemy.Distance <= Strategy.GetSafeDistance(player);
+        }
 
+        static public bool ShouldRamEnemy(Robotron player, TrackedEnemy enemy)
+        {
+            return ((player.Energy * player.Energy) > 2 * (enemy.Energy * enemy.Energy)) &&
+                (enemy.Energy < Strategy.MinEnergyForRamming);
+        }
+
+        static public Double GetSafeDistance(Robotron robot)
+        {
+            return 3.0 * robot.Width + Physics.Constants.MaxTankMovementPerTurn;
+        }
+
+        static public TrackedEnemy CalculateTrackedEnemy(TrackedEnemy currentEnemy, Robotron robot)
+        {
             TrackedEnemy trackedEnemy = null;
 
-            foreach (KeyValuePair<String, TrackedEnemy> pair in trackedEnemies.GetEnemies())
+            if (robot.TrackedEnemies.GetEnemies().Count == 0)
             {
-                if (pair.Value.Distance < minDistance)
-                {
-                    minDistance = pair.Value.Distance;
-                    trackedEnemy = pair.Value;
-                }
-
-                // Calculate danger score
-                /*Double dangerScore = 0.0;
-                if (pair.Value.DamageToPlayer.Count > 0)
-                {
-                    foreach (TrackedEnemy.EnemyDamage enemyDamage in pair.Value.DamageToPlayer)
-                    {
-                        dangerScore += enemyDamage.Damage;
-                    }
-                    dangerScore /= pair.Value.DamageToPlayer.Count;
-                    dangerScore = 1.0;
-                }
-                else
-                {
-                    dangerScore = 1.0;
-                }
-                dangerScore /= pair.Value.Distance;
-
-                if (maxDangerScore <= 0.0 || dangerScore > (maxDangerScore + DangerScoreThreshold))
-                {
-                    trackedEnemy = pair.Value;
-                    maxDangerScore = dangerScore;
-                }*/
+                return null;
             }
 
-            if (CurrentEnemy == null || !trackedEnemies.GetEnemies().ContainsKey(CurrentEnemy.Name))
+            List<TrackedEnemy> enemiesDistance = robot.TrackedEnemies.GetEnemies().Values.ToList<TrackedEnemy>();
+            List<TrackedEnemy> enemiesDanger = robot.TrackedEnemies.GetEnemies().Values.ToList<TrackedEnemy>();
+
+            enemiesDistance.Sort((itemA, itemB) => itemA.Distance.CompareTo(itemB.Distance));
+            enemiesDanger.Sort((itemA, itemB) => itemB.DangerScore.CompareTo(itemA.DangerScore));
+
+            Double MaxDangerScore = enemiesDanger.ElementAt(0).DangerScore;
+
+            // Select the closest that is not the most dangerous
+            foreach (TrackedEnemy enemy in enemiesDistance)
+            {
+                if (!robot.IsTeammate(enemy.Name) && (!UseDangerScore || MaxDangerScore == 0.0 || enemy.DangerScore < MaxDangerScore))
+                {
+                    trackedEnemy = enemy;
+                    break;
+                }
+            }
+
+            if (currentEnemy == null || !robot.TrackedEnemies.GetEnemies().ContainsKey(currentEnemy.Name))
             {
                 return trackedEnemy;
             }
-            else if (trackedEnemy.Distance < (CurrentEnemy.Distance - MinDistanceChange))
+            else if (trackedEnemy.Distance < (currentEnemy.Distance - MinDistanceChange))
             {
                 return trackedEnemy;
             }
             else
             {
-                return CurrentEnemy;
+                return currentEnemy;
             }
         }
 

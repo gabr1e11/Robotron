@@ -35,37 +35,45 @@ namespace RC
 
         public Vector2 AntigravityVector { get; private set; }
         public Double Distance { get; private set; }
-        public List<EnemyDamage> DamageToPlayer;
+        public Double DangerScore = 0.0;
 
-        public TrackedEnemy(AdvancedRobot me, ScannedRobotEvent enemy)
+        private List<EnemyDamage> DamageToPlayer;
+
+        public TrackedEnemy(Robotron player, ScannedRobotEvent enemy)
         {
             Name = enemy.Name;
             DamageToPlayer = new List<EnemyDamage>();
 
-            UpdateFromRadar(me, enemy);
+            UpdateFromRadar(player, enemy);
         }
 
-        public void UpdateFromRadar(AdvancedRobot me, ScannedRobotEvent enemy)
+        public void UpdateForCurrentTurn(Robotron player)
+        {
+            UpdateFromPlayer(player);
+            CalculateDangerScore(player.Time);
+        }
+
+        public void UpdateFromRadar(Robotron player, ScannedRobotEvent enemy)
         {
             HeadingRadians = enemy.HeadingRadians;
             Energy = enemy.Energy;
             Velocity = enemy.Velocity;
 
-            Position = Util.CalculateXYPos(me.X, me.Y, enemy.BearingRadians + me.HeadingRadians, enemy.Distance);
+            Position = Util.CalculateXYPos(player.X, player.Y, enemy.BearingRadians + player.HeadingRadians, enemy.Distance);
 
             Log("Enemy " + Name + " is at position " + Position);
-            Log("  My position is " + new Vector2(me.X, me.Y));
+            Log("  My position is " + new Vector2(player.X, player.Y));
             LastTurnSeen = enemy.Time;
 
-            UpdateFromPlayer(me);
+            UpdateFromPlayer(player);
         }
 
-        public void UpdateFromPlayer(AdvancedRobot me)
+        public void UpdateFromPlayer(Robotron player)
         {
             // Antigravity
             double gForce = 500000.0;
 
-            Vector2 playerPos = new Vector2(me.X, me.Y);
+            Vector2 playerPos = new Vector2(player.X, player.Y);
             Vector2 playerEnemyVector = Position - playerPos;
 
             double distance = playerEnemyVector.Module();
@@ -77,7 +85,7 @@ namespace RC
             Log("Enemy " + Name + " antigravity is" + AntigravityVector);
 
             // Distance
-            Distance = Util.CalculateDistance(me.X, me.Y, Position.X, Position.Y);
+            Distance = Util.CalculateDistance(player.X, player.Y, Position.X, Position.Y);
         }
 
         public void UpdateHitPlayer(HitByBulletEvent evnt)
@@ -89,8 +97,24 @@ namespace RC
             }
 
             DamageToPlayer.Add(new EnemyDamage(evnt.Time, damage));
+        }
 
-            DamageToPlayer.RemoveAll(item => (evnt.Time - item.Time) > Strategy.MaxBulletHitTimeDiff);
+        private void CalculateDangerScore(long time)
+        {
+            // Remove old hits
+            DamageToPlayer.RemoveAll(item => (time - item.Time) > Strategy.MaxBulletHitTimeDiff);
+
+            // Calculate danger score
+            DangerScore = 0.0;
+
+            if (DamageToPlayer.Count > 0)
+            {
+                foreach (TrackedEnemy.EnemyDamage enemyDamage in DamageToPlayer)
+                {
+                    DangerScore += enemyDamage.Damage;
+                }
+                DangerScore /= DamageToPlayer.Count;
+            }
         }
     }
 }
