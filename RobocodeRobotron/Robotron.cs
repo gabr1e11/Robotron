@@ -14,9 +14,8 @@ using RC.Math;
 
 namespace RC
 {
-    // Robotron v0.3
-    //
-    // Robot for Picanhas competition
+    // ROBOTRON
+    //    'A robot for Picanhas competition'
     //
     // v0.1
     //   - Created discovery radar (turns all the time)
@@ -38,18 +37,23 @@ namespace RC
     // v0.6
     //    - Avoid walls when rotating around an enemy
     //    - Approach enemy again if it is too far away
+    // v0.7
+    //    - Implemented team quadrant at start
+    //    - Team members notify each other of scanned robots
     //
     public class Robotron : TeamRobot
     {
         [Flags]
         public enum EventFlags : short
         {
-            HitWall = 0x01
+            HitWall = 0x01,
+            BumpedEnemy = 0x02
         }
 
         public Behaviour.BehaviourStateMachine BehaviourStateMachine;
         public TrackedEnemies TrackedEnemies;
         public EventFlags Events { get; private set; }
+        public bool IsTeamLeader = false;
 
         // INIT
         private void Init()
@@ -61,7 +65,9 @@ namespace RC
             IsAdjustRadarForRobotTurn = true;
 
             TrackedEnemies = new TrackedEnemies(this);
-            BehaviourStateMachine = new Behaviour.BehaviourStateMachine(this, new Behaviour.WaitForTrackedEnemyState(this));
+            BehaviourStateMachine = new Behaviour.BehaviourStateMachine(this, new Behaviour.GoToQuadrantState(this));
+
+            IsTeamLeader = (Util.GetTeamBotNumber(Name) == 1);
         }
 
         // MAIN LOOP
@@ -210,11 +216,14 @@ namespace RC
         }
 
         // EVENTS
-        public override void OnScannedRobot(ScannedRobotEvent enemy)
+        public override void OnScannedRobot(ScannedRobotEvent evnt)
         {
-            base.OnScannedRobot(enemy);
+            base.OnScannedRobot(evnt);
 
-            TrackedEnemies.OnScannedRobot(enemy);
+            Enemy scannedEnemy = new Enemy(this, evnt);
+
+            TrackedEnemies.OnScannedRobot(scannedEnemy);
+            BroadcastMessage(new TeamEvent("OnScannedRobot", scannedEnemy));
         }
 
         public override void OnRobotDeath(RobotDeathEvent enemy)
@@ -254,7 +263,7 @@ namespace RC
 
         public override void OnHitRobot(HitRobotEvent evnt)
         {
-
+            SetFlag(EventFlags.BumpedEnemy);
         }
 
         public override void OnSkippedTurn(SkippedTurnEvent evnt)
@@ -262,6 +271,24 @@ namespace RC
             base.OnSkippedTurn(evnt);
 
             Log("======================[SKIPPED TURN]===========================");
+        }
+
+        // TEAM METHODS
+        public override void OnMessageReceived(MessageEvent evnt)
+        {
+            base.OnMessageReceived(evnt);
+
+            if (evnt.Message is TeamEvent)
+            {
+                TeamEvent teamEvent = (TeamEvent)evnt.Message;
+
+                switch (teamEvent.Name)
+                {
+                    case "OnScannedRobot":
+                        TrackedEnemies.OnScannedRobot(teamEvent.Enemy);
+                        break;
+                }
+            }
         }
     }
 }

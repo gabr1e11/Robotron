@@ -22,6 +22,25 @@ namespace RC
         // Minimum energy an enemy has to have for us to ram into it
         public const Double MinEnergyForRamming = 40.0;
 
+        // Team rules
+        public const int TeamMembersCount = 2;
+        public const Double InitPosAllowedDistance = 50.0f;
+
+        // Team members initial positions
+        static public Vector2 GetTeamMemberInitPos(Robotron player)
+        {
+            int index = Util.GetTeamBotNumber(player.Name);
+            return new Vector2(index * player.BattleFieldWidth / (TeamMembersCount + 1.0), player.BattleFieldHeight / 2.0);
+        }
+
+        static public bool IsInitPosCloseEnough(Robotron player)
+        {
+            Vector2 targetPos = GetTeamMemberInitPos(player);
+            Vector2 currentPos = new Vector2(player.X, player.Y);
+
+            return (targetPos - currentPos).Module() <= InitPosAllowedDistance;
+        }
+
         // Safe distance to keep from an enemy
         static public bool IsEnemyCloseEnough(Robotron player, TrackedEnemy enemy)
         {

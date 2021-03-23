@@ -45,5 +45,14 @@ namespace RC
 
             return System.Math.Sqrt(deltaX * deltaX + deltaY * deltaY);
         }
+
+        static public int GetTeamBotNumber(String name)
+        {
+            String n = "0";
+            int low = name.IndexOf("(") + 1;
+            int hi = name.LastIndexOf(")");
+            if (low >= 0 && hi >= 0) { n = name.Substring(low, hi - low); }
+            return Int32.Parse(n);
+        }
     }
 }

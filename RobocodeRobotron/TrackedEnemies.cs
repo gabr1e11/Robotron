@@ -31,7 +31,7 @@ namespace RC
             return Enemies;
         }
 
-        public void OnScannedRobot(ScannedRobotEvent enemy)
+        public void OnScannedRobot(Enemy enemy)
         {
             Log("Enemy " + enemy.Name + " detected at distance " + enemy.Distance);
             if (!Enemies.ContainsKey(enemy.Name))

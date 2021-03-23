@@ -2,6 +2,7 @@
 
 namespace RC.Math
 {
+    [Serializable()]
     public struct Vector2
     {
         public double X;

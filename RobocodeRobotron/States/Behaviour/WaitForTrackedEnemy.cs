@@ -6,11 +6,11 @@ namespace RC.Behaviour
 {
     public class WaitForTrackedEnemyState : Behaviour.State
     {
-        private Robotron Robot = null;
+        private Robotron Player = null;
 
-        public WaitForTrackedEnemyState(Robotron robot)
+        public WaitForTrackedEnemyState(Robotron player)
         {
-            Robot = robot;
+            Player = player;
         }
 
         public void Enter(BehaviourStateMachine behaviour)
@@ -20,10 +20,10 @@ namespace RC.Behaviour
 
         public void Execute(BehaviourStateMachine behaviour)
         {
-            TrackedEnemy trackedEnemy = Strategy.CalculateTrackedEnemy(null, Robot);
+            TrackedEnemy trackedEnemy = Strategy.CalculateTrackedEnemy(null, Player);
             if (trackedEnemy != null)
             {
-                behaviour.ChangeState(new ApproachEnemyState(Robot, trackedEnemy));
+                behaviour.ChangeState(new ApproachEnemyState(Player, trackedEnemy));
                 return;
             }
         }

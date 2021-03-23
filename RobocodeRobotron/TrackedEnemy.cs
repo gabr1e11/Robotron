@@ -39,7 +39,7 @@ namespace RC
 
         private List<EnemyDamage> DamageToPlayer;
 
-        public TrackedEnemy(Robotron player, ScannedRobotEvent enemy)
+        public TrackedEnemy(Robotron player, Enemy enemy)
         {
             Name = enemy.Name;
             DamageToPlayer = new List<EnemyDamage>();
@@ -53,13 +53,12 @@ namespace RC
             CalculateDangerScore(player.Time);
         }
 
-        public void UpdateFromRadar(Robotron player, ScannedRobotEvent enemy)
+        public void UpdateFromRadar(Robotron player, Enemy enemy)
         {
             HeadingRadians = enemy.HeadingRadians;
             Energy = enemy.Energy;
             Velocity = enemy.Velocity;
-
-            Position = Util.CalculateXYPos(player.X, player.Y, enemy.BearingRadians + player.HeadingRadians, enemy.Distance);
+            Position = enemy.Position;
 
             Log("Enemy " + Name + " is at position " + Position);
             Log("  My position is " + new Vector2(player.X, player.Y));
