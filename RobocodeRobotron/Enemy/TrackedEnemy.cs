@@ -26,12 +26,37 @@ namespace RC
             }
         }
 
+        public struct EnemyPosition
+        {
+            public long Time;
+            public Vector2 Position;
+
+            public EnemyPosition(long time, Vector2 position)
+            {
+                Time = time;
+                Position = position;
+            }
+        }
+
         public String Name { get; private set; }
         public double HeadingRadians { get; private set; } = 0.0;
         public double BearingRadians { get; private set; } = 0.0;
         public double Energy { get; private set; } = 0.0;
         public double Velocity { get; private set; } = 0.0;
-        public Vector2 Position { get; private set; } = new Vector2();
+        public Vector2 Position
+        {
+            get
+            {
+                return _Position;
+            }
+
+            private set
+            {
+                _Position = value;
+            }
+        }
+        private Vector2 _Position;
+
         public long Time { get; private set; } = 0;
 
         public Vector2 AntigravityVector { get; private set; }
@@ -42,10 +67,13 @@ namespace RC
 
         private List<EnemyDamage> DamageToPlayer;
 
+        private List<EnemyPosition> PositionHistory;
+
         public TrackedEnemy(Robotron player, Enemy enemy)
         {
             Name = enemy.Name;
             DamageToPlayer = new List<EnemyDamage>();
+            PositionHistory = new List<EnemyPosition>();
 
             UpdateFromRadar(player, enemy);
         }
@@ -54,6 +82,12 @@ namespace RC
         {
             UpdateFromPlayer(player);
             CalculateDangerScore(player.Time);
+            UpdatePositionHistory(player.Time);
+        }
+
+        private void UpdatePositionHistory(long time)
+        {
+            PositionHistory.RemoveAll(item => (time - item.Time) > Strategy.Config.PositionHistoryMaxTurnsToKeep);
         }
 
         public void UpdateFromRadar(Robotron player, Enemy enemy)
@@ -62,9 +96,11 @@ namespace RC
             BearingRadians = enemy.BearingRadians;
             Energy = enemy.Energy;
             Velocity = enemy.Velocity;
-            Position = enemy.Position;
 
-            Log("Enemy " + Name + " is at position " + Position);
+            Position = enemy.Position;
+            PositionHistory.Add(new EnemyPosition(enemy.Time, enemy.Position));
+
+            Log("Enemy " + Name + " is at position " + enemy.Position);
             Log("  My position is " + new Vector2(player.X, player.Y));
             Time = enemy.Time;
 

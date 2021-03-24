@@ -36,5 +36,8 @@ namespace RC
 
         // Angular speed for rotation around an enemy
         public Double RotationAroundEnemySpeedDegreesSec = 10.0;
+
+        // Maximum number of turns to keep for the position history of an enemy
+        public long PositionHistoryMaxTurnsToKeep = 20;
     }
 }

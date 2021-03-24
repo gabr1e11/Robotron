@@ -108,6 +108,9 @@ namespace RC
             // Maximum number of turns that the radar will lock onto the enemy
             config.LockRadarFocusMaxTurns = 5;
 
+            // Maximum number of turns to keep for the position history of an enemy
+            config.PositionHistoryMaxTurnsToKeep = 20;
+
             Strategy.SetConfig(config);
         }
 
