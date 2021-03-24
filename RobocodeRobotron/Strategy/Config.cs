@@ -39,5 +39,8 @@ namespace RC
 
         // Maximum number of turns to keep for the position history of an enemy
         public long PositionHistoryMaxTurnsToKeep = 20;
+
+        // Enables/disables prediction of next enemy position
+        public bool EnableEnemyPositionPrediction = true;
     }
 }

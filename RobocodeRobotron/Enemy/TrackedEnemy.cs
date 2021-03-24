@@ -26,18 +26,6 @@ namespace RC
             }
         }
 
-        public struct EnemyPosition
-        {
-            public long Time;
-            public Vector2 Position;
-
-            public EnemyPosition(long time, Vector2 position)
-            {
-                Time = time;
-                Position = position;
-            }
-        }
-
         public String Name { get; private set; }
         public double HeadingRadians { get; private set; } = 0.0;
         public double BearingRadians { get; private set; } = 0.0;
@@ -47,15 +35,14 @@ namespace RC
         {
             get
             {
-                return _Position;
+                return CalculateNextPosition();
             }
-
             private set
             {
-                _Position = value;
             }
         }
-        private Vector2 _Position;
+
+        private Vector2 LastKnownPosition;
 
         public long Time { get; private set; } = 0;
 
@@ -67,13 +54,10 @@ namespace RC
 
         private List<EnemyDamage> DamageToPlayer;
 
-        private List<EnemyPosition> PositionHistory;
-
         public TrackedEnemy(Robotron player, Enemy enemy)
         {
             Name = enemy.Name;
             DamageToPlayer = new List<EnemyDamage>();
-            PositionHistory = new List<EnemyPosition>();
 
             UpdateFromRadar(player, enemy);
         }
@@ -82,23 +66,15 @@ namespace RC
         {
             UpdateFromPlayer(player);
             CalculateDangerScore(player.Time);
-            UpdatePositionHistory(player.Time);
-        }
-
-        private void UpdatePositionHistory(long time)
-        {
-            PositionHistory.RemoveAll(item => (time - item.Time) > Strategy.Config.PositionHistoryMaxTurnsToKeep);
         }
 
         public void UpdateFromRadar(Robotron player, Enemy enemy)
         {
             HeadingRadians = enemy.HeadingRadians;
             BearingRadians = enemy.BearingRadians;
+            LastKnownPosition = enemy.Position;
             Energy = enemy.Energy;
             Velocity = enemy.Velocity;
-
-            Position = enemy.Position;
-            PositionHistory.Add(new EnemyPosition(enemy.Time, enemy.Position));
 
             Log("Enemy " + Name + " is at position " + enemy.Position);
             Log("  My position is " + new Vector2(player.X, player.Y));
@@ -155,5 +131,19 @@ namespace RC
                 DangerScore /= DamageToPlayer.Count;
             }
         }
+
+        private Vector2 CalculateNextPosition()
+        {
+            Vector2 predictedVector = new Vector2();
+
+            if (Strategy.Config.EnableEnemyPositionPrediction)
+            {
+                predictedVector += new Vector2(System.Math.Sin(HeadingRadians), System.Math.Cos(HeadingRadians));
+                predictedVector *= Velocity;
+            }
+
+            return LastKnownPosition + predictedVector;
+        }
+
     }
 }

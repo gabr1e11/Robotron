@@ -51,6 +51,8 @@ namespace RC
     // v1.1
     //    - Tweaked radar locking when tracking an enemy
     //    - Refactored the state machines to make them more independant
+    // v1.2
+    //    - Added predictive enemy tracking
     //
     public class Robotron : TeamRobot
     {
@@ -69,7 +71,7 @@ namespace RC
         // INIT
         private void Init()
         {
-            SetColors(Color.LawnGreen, Color.DarkOliveGreen, Color.ForestGreen);
+            SetColors(Color.LawnGreen, Color.DarkOliveGreen, Color.ForestGreen, Color.DarkSeaGreen, Color.GreenYellow);
 
             IsAdjustGunForRobotTurn = true;
             IsAdjustRadarForGunTurn = true;
@@ -109,7 +111,11 @@ namespace RC
             config.LockRadarFocusMaxTurns = 5;
 
             // Maximum number of turns to keep for the position history of an enemy
-            config.PositionHistoryMaxTurnsToKeep = 20;
+            // REMOVE
+            //config.PositionHistoryMaxTurnsToKeep = 20;
+
+            // Enables/disables prediction of next enemy position
+            config.EnableEnemyPositionPrediction = true;
 
             Strategy.SetConfig(config);
         }
