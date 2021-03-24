@@ -12,8 +12,6 @@ namespace RC.Behaviour
     {
         private Robotron Player = null;
         private TrackedEnemy Enemy = null;
-        private bool ClockwiseTurnEnabled = true;
-        private long LastRotationChangeTurn = 0;
 
         public AttackEnemyState(Robotron player, TrackedEnemy enemy)
         {
@@ -23,7 +21,7 @@ namespace RC.Behaviour
 
         public void Enter(BehaviourStateMachine behaviour)
         {
-            behaviour.ChangeBodyState(new Body.RotateAroundEnemyState(Enemy, ClockwiseTurnEnabled));
+            behaviour.ChangeBodyState(new Body.RotateAroundEnemyState(Enemy, true));
             behaviour.ChangeGunState(new Gun.TrackEnemyState(Enemy));
             behaviour.ChangeRadarState(new Radar.TrackEnemyLockFocusState(Enemy));
         }
@@ -55,18 +53,6 @@ namespace RC.Behaviour
             {
                 behaviour.ChangeState(new ApproachEnemyState(Player, Enemy));
                 return;
-            }
-
-            // Change direction if hit a wall
-            if (Player.IsFlagSet(Robotron.EventFlags.HitWall) && (Player.Time - LastRotationChangeTurn > 10))
-            {
-                ClockwiseTurnEnabled = !ClockwiseTurnEnabled;
-
-                behaviour.ChangeBodyState(new Body.RotateAroundEnemyState(Enemy, ClockwiseTurnEnabled));
-
-                LastRotationChangeTurn = Player.Time;
-
-                Player.ClearFlag(Robotron.EventFlags.HitWall);
             }
         }
 

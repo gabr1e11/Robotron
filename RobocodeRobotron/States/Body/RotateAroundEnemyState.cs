@@ -12,12 +12,13 @@ namespace RC.Body
     public class RotateAroundEnemyState : Body.State
     {
         private TrackedEnemy Enemy = null;
-        private bool ClockwiseTurn = true;
+        private bool ClockwiseTurnEnabled = true;
+        private long LastRotationChangeTurn = 0;
 
         public RotateAroundEnemyState(TrackedEnemy enemy, bool clockwise)
         {
             Enemy = enemy;
-            ClockwiseTurn = clockwise;
+            ClockwiseTurnEnabled = clockwise;
         }
 
         public void Enter(BehaviourStateMachine behaviour)
@@ -27,7 +28,17 @@ namespace RC.Body
 
         public void Execute(BehaviourStateMachine behaviour)
         {
-            behaviour.Robot.RotateAroundPosition(Enemy.Position, Utils.ToRadians(10.0), ClockwiseTurn);
+            // Change direction if hit a wall
+            if (behaviour.Robot.IsFlagSet(Robotron.EventFlags.HitWall) && (behaviour.Robot.Time - LastRotationChangeTurn > 10))
+            {
+                ClockwiseTurnEnabled = !ClockwiseTurnEnabled;
+                LastRotationChangeTurn = behaviour.Robot.Time;
+
+                behaviour.Robot.ClearFlag(Robotron.EventFlags.HitWall);
+            }
+
+            Double angularSpeedRadiansSec = Utils.ToRadians(Strategy.Config.RotationAroundEnemySpeedDegreesSec);
+            behaviour.Robot.RotateAroundPosition(Enemy.Position, angularSpeedRadiansSec, ClockwiseTurnEnabled);
         }
 
         public void Exit(BehaviourStateMachine behaviour)

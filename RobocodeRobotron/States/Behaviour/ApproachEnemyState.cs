@@ -57,16 +57,6 @@ namespace RC.Behaviour
                 behaviour.ChangeState(new Behaviour.AttackEnemyState(Player, Enemy));
                 return;
             }
-
-            // Radar lost track of enemy
-            if (Enemy.Time != Player.Time)
-            {
-                behaviour.ChangeRadarState(new Radar.FullScanState());
-            }
-            else
-            {
-                behaviour.ChangeRadarState(new Radar.TrackEnemyLockFocusState(Enemy));
-            }
         }
 
         public void Exit(BehaviourStateMachine behaviour)

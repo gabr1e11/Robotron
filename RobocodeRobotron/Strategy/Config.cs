@@ -33,5 +33,8 @@ namespace RC
 
         // Maximum number of turns that the radar will lock onto the enemy
         public int LockRadarFocusMaxTurns = 5;
+
+        // Angular speed for rotation around an enemy
+        public Double RotationAroundEnemySpeedDegreesSec = 10.0;
     }
 }
