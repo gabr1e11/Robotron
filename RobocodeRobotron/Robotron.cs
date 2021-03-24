@@ -48,6 +48,9 @@ namespace RC
     //      when we stop tracking it to avoid tracking the same
     // v1.0
     //    - Added radar locking when tracking an enemy
+    // v1.1
+    //    - Tweaked radar locking when tracking an enemy
+    //    - Refactored the state machines to make them more independant
     //
     public class Robotron : TeamRobot
     {
@@ -98,6 +101,12 @@ namespace RC
 
             // Team rules
             config.InitPosAllowedDistance = 50.0f;
+
+            // Radar scan area swipe angle
+            config.RadarScanAreaSwipeAngleRadians = 20.0;
+
+            // Maximum number of turns that the radar will lock onto the enemy
+            config.LockRadarFocusMaxTurns = 5;
 
             Strategy.SetConfig(config);
         }
@@ -226,7 +235,6 @@ namespace RC
             Log("Current Speed=" + Velocity);
             Log("Around point=" + position + ", Robot position=" + new Vector2(X, Y));
             Log("distance=" + distance + ", speed=" + speed + ", turnAngle=" + Utils.ToDegrees(turnAngle));
-
         }
 
         public void StopTank()
@@ -235,9 +243,9 @@ namespace RC
             SetTurnRight(0.0f);
         }
 
-        public void PointGunAt(TrackedEnemy curTrackedEnemy)
+        public void PointGunAt(TrackedEnemy enemy)
         {
-            double enemyBearingRadians = Util.CalculateBearingRadians(X, Y, curTrackedEnemy.Position.X, curTrackedEnemy.Position.Y);
+            double enemyBearingRadians = Util.CalculateBearingRadians(X, Y, enemy.Position.X, enemy.Position.Y);
             double gunRotationRadians = Utils.NormalRelativeAngle(enemyBearingRadians - GunHeadingRadians);
 
             Log("Gun heading " + GunHeading);
@@ -245,6 +253,21 @@ namespace RC
 
             Log("Rotating gun by " + gunRotationRadians + " radians (" + Utils.ToDegrees(gunRotationRadians) + " degrees)");
             SetTurnGunRightRadians(gunRotationRadians);
+        }
+
+        public void PointRadarAt(TrackedEnemy enemy, Double offsetRadians)
+        {
+            double enemyBearingRadians = Util.CalculateBearingRadians(X, Y, enemy.Position.X, enemy.Position.Y);
+            double radarRotationRadians = Utils.NormalRelativeAngle(enemyBearingRadians - RadarHeadingRadians);
+
+            if (radarRotationRadians <= 0)
+            {
+                SetTurnRadarRightRadians(radarRotationRadians - offsetRadians);
+            }
+            else
+            {
+                SetTurnRadarRightRadians(radarRotationRadians + offsetRadians);
+            }
         }
 
         // EVENTS
@@ -291,6 +314,17 @@ namespace RC
         public override void OnHitByBullet(HitByBulletEvent evnt)
         {
             TrackedEnemies.OnHitByBullet(evnt);
+        }
+
+        public override void OnWin(WinEvent evnt)
+        {
+            base.OnWin(evnt);
+
+            /* for (int i = 0; i < 50; i++)
+             {
+                 TurnRight(30);
+                 TurnLeft(30);
+             }*/
         }
 
         public override void OnHitRobot(HitRobotEvent evnt)

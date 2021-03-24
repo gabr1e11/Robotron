@@ -1,20 +1,22 @@
 ﻿using System;
 
+using RC.Behaviour;
+
 namespace RC.Radar
 {
     public class FullScanState : Radar.State
     {
-        public void Enter(Robotron robot)
+        public void Enter(BehaviourStateMachine behaviour)
         {
 
         }
 
-        public void Execute(Robotron robot)
+        public void Execute(BehaviourStateMachine behaviour)
         {
-            robot.SetTurnRadarRight(45.0);
+            behaviour.Robot.SetTurnRadarRight(45.0);
         }
 
-        public void Exit(Robotron robot)
+        public void Exit(BehaviourStateMachine behaviour)
         {
 
         }

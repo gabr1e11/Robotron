@@ -27,5 +27,11 @@ namespace RC
 
         // Team rules
         public Double InitPosAllowedDistance = 50.0f;
+
+        // Radar scan area swipe angle
+        public Double RadarScanAreaSwipeAngleRadians = 20.0;
+
+        // Maximum number of turns that the radar will lock onto the enemy
+        public int LockRadarFocusMaxTurns = 5;
     }
 }

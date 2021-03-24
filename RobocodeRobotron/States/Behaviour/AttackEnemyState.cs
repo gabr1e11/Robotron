@@ -25,11 +25,12 @@ namespace RC.Behaviour
         {
             behaviour.ChangeBodyState(new Body.RotateAroundEnemyState(Enemy, ClockwiseTurnEnabled));
             behaviour.ChangeGunState(new Gun.TrackEnemyState(Enemy));
-            behaviour.ChangeRadarState(new Radar.TrackEnemyState(Enemy));
+            behaviour.ChangeRadarState(new Radar.TrackEnemyLockFocusState(Enemy));
         }
 
         public void Execute(BehaviourStateMachine behaviour)
         {
+            // Enemy tracking
             TrackedEnemy newTrackedEnemy = Strategy.CalculateTrackedEnemy(Enemy, Player);
             if (newTrackedEnemy == null)
             {
@@ -42,18 +43,21 @@ namespace RC.Behaviour
                 return;
             }
 
+            // Enemy ramming
             if (Strategy.ShouldRamEnemy(Player, Enemy))
             {
                 behaviour.ChangeState(new RamEnemyState(Player, Enemy));
                 return;
             }
 
+            // Approach enemy
             if (Strategy.IsEnemyTooFar(Player, Enemy))
             {
                 behaviour.ChangeState(new ApproachEnemyState(Player, Enemy));
                 return;
             }
 
+            // Change direction if hit a wall
             if (Player.IsFlagSet(Robotron.EventFlags.HitWall) && (Player.Time - LastRotationChangeTurn > 10))
             {
                 ClockwiseTurnEnabled = !ClockwiseTurnEnabled;
@@ -63,14 +67,6 @@ namespace RC.Behaviour
                 LastRotationChangeTurn = Player.Time;
 
                 Player.ClearFlag(Robotron.EventFlags.HitWall);
-            }
-            if (Enemy.Time != Player.Time)
-            {
-                behaviour.ChangeRadarState(new Radar.FullScanState());
-            }
-            else
-            {
-                behaviour.ChangeRadarState(new Radar.TrackEnemyState(Enemy));
             }
         }
 

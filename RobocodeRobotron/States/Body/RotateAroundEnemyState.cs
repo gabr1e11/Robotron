@@ -5,6 +5,7 @@ using Robocode.Util;
 
 using RC.Math;
 using static RC.Logger;
+using RC.Behaviour;
 
 namespace RC.Body
 {
@@ -19,17 +20,17 @@ namespace RC.Body
             ClockwiseTurn = clockwise;
         }
 
-        public void Enter(Robotron robot)
+        public void Enter(BehaviourStateMachine behaviour)
         {
 
         }
 
-        public void Execute(Robotron robot)
+        public void Execute(BehaviourStateMachine behaviour)
         {
-            robot.RotateAroundPosition(Enemy.Position, Utils.ToRadians(10.0), ClockwiseTurn);
+            behaviour.Robot.RotateAroundPosition(Enemy.Position, Utils.ToRadians(10.0), ClockwiseTurn);
         }
 
-        public void Exit(Robotron robot)
+        public void Exit(BehaviourStateMachine behaviour)
         {
 
         }

@@ -23,7 +23,7 @@ namespace RC.Behaviour
         {
             behaviour.ChangeBodyState(new Body.RamEnemyState(Enemy));
             behaviour.ChangeGunState(new Gun.TrackEnemyState(Enemy));
-            behaviour.ChangeRadarState(new Radar.TrackEnemyState(Enemy));
+            behaviour.ChangeRadarState(new Radar.TrackEnemyLockFocusState(Enemy));
         }
 
         public void Execute(BehaviourStateMachine behaviour)
@@ -45,7 +45,7 @@ namespace RC.Behaviour
             }
             else
             {
-                behaviour.ChangeRadarState(new Radar.TrackEnemyState(Enemy));
+                behaviour.ChangeRadarState(new Radar.TrackEnemyLockFocusState(Enemy));
             }
 
             // TODO: Escape from enemy if they are about to kill us

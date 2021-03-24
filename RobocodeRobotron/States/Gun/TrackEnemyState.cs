@@ -2,6 +2,8 @@
 
 using static RC.Logger;
 
+using RC.Behaviour;
+
 namespace RC.Gun
 {
     public class TrackEnemyState : Gun.State
@@ -13,25 +15,25 @@ namespace RC.Gun
             Enemy = enemy;
         }
 
-        public void Enter(Robotron robot)
+        public void Enter(BehaviourStateMachine behaviour)
         {
 
         }
 
-        public void Execute(Robotron robot)
+        public void Execute(BehaviourStateMachine behaviour)
         {
-            robot.PointGunAt(Enemy);
+            behaviour.Robot.PointGunAt(Enemy);
 
-            if (System.Math.Abs(robot.GunTurnRemaining) < 7.0)
+            if (System.Math.Abs(behaviour.Robot.GunTurnRemaining) < 7.0)
             {
-                Double firePower = Strategy.CalculateFirePower(robot, Enemy);
+                Double firePower = Strategy.CalculateFirePower(behaviour.Robot, Enemy);
 
-                Log("Firing Enemy: " + Enemy.Name + " with power: " + firePower + "(Gun heat = " + robot.GunHeat + ")");
-                robot.Fire(firePower);
+                Log("Firing Enemy: " + Enemy.Name + " with power: " + firePower + "(Gun heat = " + behaviour.Robot.GunHeat + ")");
+                behaviour.Robot.Fire(firePower);
             }
         }
 
-        public void Exit(Robotron robot)
+        public void Exit(BehaviourStateMachine behaviour)
         {
 
         }

@@ -3,6 +3,7 @@
 using Robocode;
 
 using RC.Math;
+using RC.Behaviour;
 using static RC.Logger;
 
 namespace RC.Body
@@ -16,23 +17,23 @@ namespace RC.Body
             Enemy = enemy;
         }
 
-        public void Enter(Robotron robot)
+        public void Enter(BehaviourStateMachine behaviour)
         {
 
         }
 
-        public void Execute(Robotron robot)
+        public void Execute(BehaviourStateMachine behaviour)
         {
-            Vector2 robotXY = new Vector2(robot.X, robot.Y);
+            Vector2 robotXY = new Vector2(behaviour.Robot.X, behaviour.Robot.Y);
             Vector2 robotEnemyVectorNorm = (Enemy.Position - robotXY).GetNormalized();
 
-            Double safeDistance = Enemy.Distance - Strategy.GetSafeDistance(robot);
+            Double safeDistance = Enemy.Distance - Strategy.GetSafeDistance(behaviour.Robot);
             Vector2 targetXY = robotXY + robotEnemyVectorNorm * safeDistance;
 
-            robot.GoToPosition(targetXY);
+            behaviour.Robot.GoToPosition(targetXY);
         }
 
-        public void Exit(Robotron robot)
+        public void Exit(BehaviourStateMachine behaviour)
         {
 
         }

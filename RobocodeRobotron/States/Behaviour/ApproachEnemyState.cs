@@ -23,13 +23,14 @@ namespace RC.Behaviour
         {
             behaviour.ChangeBodyState(new Body.ApproachEnemyState(Enemy));
             behaviour.ChangeGunState(new Gun.TrackEnemyState(Enemy));
-            behaviour.ChangeRadarState(new Radar.TrackEnemyState(Enemy));
+            behaviour.ChangeRadarState(new Radar.TrackEnemyLockFocusState(Enemy));
 
             Player.SendTeamEvent(TeamEventType.TrackingEnemy, new Enemy(Enemy));
         }
 
         public void Execute(BehaviourStateMachine behaviour)
         {
+            // Enemy tracking
             TrackedEnemy newTrackedEnemy = Strategy.CalculateTrackedEnemy(Enemy, Player);
             if (newTrackedEnemy == null)
             {
@@ -41,24 +42,30 @@ namespace RC.Behaviour
                 behaviour.ChangeState(new ApproachEnemyState(Player, newTrackedEnemy));
                 return;
             }
+
+            // Enemy ramming
             if (Player.IsFlagSet(Robotron.EventFlags.BumpedEnemy))
             {
                 Player.ClearFlag(Robotron.EventFlags.BumpedEnemy);
                 behaviour.ChangeState(new WaitForTrackedEnemyState(Player));
                 return;
             }
+
+            // Stop approaching if too close
             if (Strategy.IsEnemyCloseEnough(Player, Enemy))
             {
                 behaviour.ChangeState(new Behaviour.AttackEnemyState(Player, Enemy));
                 return;
             }
+
+            // Radar lost track of enemy
             if (Enemy.Time != Player.Time)
             {
                 behaviour.ChangeRadarState(new Radar.FullScanState());
             }
             else
             {
-                behaviour.ChangeRadarState(new Radar.TrackEnemyState(Enemy));
+                behaviour.ChangeRadarState(new Radar.TrackEnemyLockFocusState(Enemy));
             }
         }
 

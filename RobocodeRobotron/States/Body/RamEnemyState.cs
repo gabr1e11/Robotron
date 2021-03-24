@@ -4,6 +4,7 @@ using Robocode;
 using Robocode.Util;
 
 using RC.Math;
+using RC.Behaviour;
 using static RC.Logger;
 
 namespace RC.Body
@@ -17,17 +18,17 @@ namespace RC.Body
             Enemy = enemy;
         }
 
-        public void Enter(Robotron robot)
+        public void Enter(BehaviourStateMachine behaviour)
         {
 
         }
 
-        public void Execute(Robotron robot)
+        public void Execute(BehaviourStateMachine behaviour)
         {
-            robot.GoToPosition(Enemy.Position);
+            behaviour.Robot.GoToPosition(Enemy.Position);
         }
 
-        public void Exit(Robotron robot)
+        public void Exit(BehaviourStateMachine behaviour)
         {
 
         }

@@ -7,9 +7,9 @@ namespace RC.Behaviour
     public class BehaviourStateMachine
     {
         private FiniteStateMachine<BehaviourStateMachine> BehaviourFSM = null;
-        private FiniteStateMachine<Robotron> BodyStateMachine = null;
-        private FiniteStateMachine<Robotron> GunStateMachine = null;
-        private FiniteStateMachine<Robotron> RadarStateMachine = null;
+        private FiniteStateMachine<BehaviourStateMachine> BodyStateMachine = null;
+        private FiniteStateMachine<BehaviourStateMachine> GunStateMachine = null;
+        private FiniteStateMachine<BehaviourStateMachine> RadarStateMachine = null;
 
         public Robotron Robot = null;
 
@@ -17,9 +17,9 @@ namespace RC.Behaviour
         {
             Robot = robot;
 
-            BodyStateMachine = new FiniteStateMachine<Robotron>(robot, null);
-            GunStateMachine = new FiniteStateMachine<Robotron>(robot, null);
-            RadarStateMachine = new FiniteStateMachine<Robotron>(robot, null);
+            BodyStateMachine = new FiniteStateMachine<BehaviourStateMachine>(this, null);
+            GunStateMachine = new FiniteStateMachine<BehaviourStateMachine>(this, null);
+            RadarStateMachine = new FiniteStateMachine<BehaviourStateMachine>(this, null);
 
             BehaviourFSM = new FiniteStateMachine<BehaviourStateMachine>(this, initState);
         }
