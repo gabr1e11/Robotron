@@ -9,7 +9,7 @@ namespace RC.Radar
     public class TrackEnemyLockFocusState : Radar.State
     {
         TrackedEnemy Enemy = null;
-        Double SwipeAreaHalfAngle = Strategy.Config.RadarScanAreaSwipeAngleRadians / 2.0;
+        Double SwipeAreaHalfAngle = Utils.ToRadians(Strategy.Config.RadarScanAreaSwipeAngleDegrees) / 2.0;
         int LockFocusCount = Strategy.Config.LockRadarFocusMaxTurns;
 
         public TrackEnemyLockFocusState(TrackedEnemy enemy)
