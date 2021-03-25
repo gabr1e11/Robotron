@@ -24,6 +24,16 @@ namespace RC
             return new Vector2(index * player.BattleFieldWidth / (player.Teammates.Length + 2.0), player.BattleFieldHeight / 2.0);
         }
 
+        static public bool IsInMemberQuadrant(Robotron player, Vector2 position)
+        {
+            int index = Util.GetTeamBotNumber(player.Name);
+
+            Double quadrantWidth = player.BattleFieldWidth / (player.Teammates.Length + 1.0);
+
+            return (position.X >= ((index - 1) * quadrantWidth)) &&
+                   (position.X < (index * quadrantWidth));
+        }
+
         static public bool IsInitPosCloseEnough(Robotron player)
         {
             Vector2 targetPos = GetTeamMemberInitPos(player);
@@ -58,13 +68,13 @@ namespace RC
 
         static public Double GetSafeDistance(Robotron robot)
         {
-            if (robot.Energy < Config.MinEnergyForCloserDistance)
+            if (robot.Energy < Config.SafeDistanceLowEnergyThreshold)
             {
-                return 5.0 * robot.Width + Physics.Constants.MaxTankMovementPerTurn;
+                return Config.SafeDistanceMultiplierLowEnergy * robot.Width + Physics.Constants.MaxTankMovementPerTurn;
             }
             else
             {
-                return 3.0 * robot.Width + Physics.Constants.MaxTankMovementPerTurn;
+                return Config.SafeDistanceMultiplierNormalEnergy * robot.Width + Physics.Constants.MaxTankMovementPerTurn;
             }
         }
 
@@ -80,10 +90,14 @@ namespace RC
             foreach (TrackedEnemy enemy in enemies)
             {
                 enemy.TrackingScore = Config.TrackingScoreDistanceWeight * enemy.Distance +
-                    Config.TrackingScoreDangerWeight * enemy.DangerScore +
-                    Config.TrackingScoreEnergyWeight * enemy.Energy;
-            }
+                Config.TrackingScoreDangerWeight * enemy.DangerScore +
+                Config.TrackingScoreEnergyWeight * enemy.Energy;
 
+                if (IsInMemberQuadrant(robot, enemy.Position))
+                {
+                    enemy.TrackingScore *= 3.0;
+                }
+            }
             enemies.Sort((itemA, itemB) => itemA.TrackingScore.CompareTo(itemB.TrackingScore));
             return enemies.ElementAt(0);
         }
