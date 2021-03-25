@@ -89,35 +89,42 @@ namespace RC
         {
             Config config = new Config();
 
-            // Minimum energy an enemy has to have for us to ram into it
-            config.MinEnergyForRamming = 40.0;
-
-            // Minimum distance for full energy bullet
-            config.MinDistanceHighEnergyBullet = 50.0;
-            config.MaxDistanceLowEnergyBullet = 500.0;
-
-            // Weights for the tracking score formula
-            config.TrackingScoreDistanceWeight = 1.0;
-            config.TrackingScoreDangerWeight = 0.0;
-            config.TrackingScoreEnergyWeight = 0.0;
-
-            // Team rules
-            config.InitPosAllowedDistance = 50.0f;
-
-            // Radar scan area swipe angle
-            config.RadarScanAreaSwipeAngleRadians = 20.0;
-
-            // Maximum number of turns that the radar will lock onto the enemy
-            config.LockRadarFocusMaxTurns = 5;
-
-            // Enables/disables prediction of next enemy position
-            config.EnableEnemyPositionPrediction = true;
-
-            // Enemy safe distance thresholds
+            // SAFE DISTANCE
+            //   Multipliers based on the robot energy
+            config.SafeDistanceLowEnergyThreshold = 30.0;
+            config.SafeDistanceMultiplierLowEnergy = 5.0;
+            config.SafeDistanceMultiplierNormalEnergy = 3.0;
+            //   Multipliers based on the enemy distance
             config.EnemyTooFarMultiplier = 2.0;
             config.EnemyTooCloseMultiplier = 0.5;
             config.EnemyCloseEnoughMaxMultiplier = 1.5;
             config.EnemyCloseEnoughMinMultiplier = 0.8;
+
+            // BULLET ENERGY
+            config.MinDistanceHighEnergyBullet = 50.0;
+            config.MaxDistanceLowEnergyBullet = 500.0;
+
+            // TRACKING SCORE (for selecting enemies)
+            config.TrackingScoreDistanceWeight = 1.0;
+            config.TrackingScoreDangerWeight = 0.0;
+            config.TrackingScoreEnergyWeight = 0.0;
+            //    Maximum number of turns to consider for danger score
+            config.MaxBulletHitTimeDiff = 16 * 4;
+
+            // TEAM QUADRANT
+            config.InitPosAllowedDistance = 50.0f;
+
+            // ENEMY LOCKED
+            //    Angle of the radar swiping area
+            config.RadarScanAreaSwipeAngleDegrees = 1.0;
+            //    Maximum number of turns that the radar will lock onto the enemy
+            config.LockRadarFocusMaxTurns = 20;
+            //    Angular speed for rotation around an enemy
+            config.RotationAroundEnemySpeedDegreesSec = 10.0;
+            //    Enables/disables prediction of next enemy position
+            config.EnableEnemyPositionPrediction = true;
+            // Minimum energy an enemy has to have for us to ram into it
+            config.MinEnergyForRamming = 40.0;
 
             Strategy.SetConfig(config);
         }
@@ -331,11 +338,6 @@ namespace RC
         {
             base.OnWin(evnt);
 
-            /* for (int i = 0; i < 50; i++)
-             {
-                 TurnRight(30);
-                 TurnLeft(30);
-             }*/
         }
 
         public override void OnHitRobot(HitRobotEvent evnt)
