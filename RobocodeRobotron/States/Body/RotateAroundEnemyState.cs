@@ -28,6 +28,14 @@ namespace RC.Body
 
         public void Execute(BehaviourStateMachine behaviour)
         {
+            // Go to the safe distance again
+            /*if (Strategy.IsEnemyTooFar(behaviour.Robot, Enemy) ||
+                Strategy.IsEnemyTooClose(behaviour.Robot, Enemy))
+            {
+                behaviour.ChangeBodyState(new SafeDistanceFromEnemyState(Enemy));
+                return;
+            }*/
+
             // Change direction if hit a wall
             if (behaviour.Robot.IsFlagSet(Robotron.EventFlags.HitWall) && (behaviour.Robot.Time - LastRotationChangeTurn > 10))
             {

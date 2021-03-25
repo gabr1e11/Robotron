@@ -35,13 +35,19 @@ namespace RC
         // Safe distance to keep from an enemy
         static public bool IsEnemyCloseEnough(Robotron player, TrackedEnemy enemy)
         {
-            return enemy.Distance <= Strategy.GetSafeDistance(player);
+            return enemy.Distance <= Config.EnemyCloseEnoughMaxMultiplier * Strategy.GetSafeDistance(player) &&
+                enemy.Distance >= Config.EnemyCloseEnoughMinMultiplier * Strategy.GetSafeDistance(player);
         }
 
         // Safe distance to keep from an enemy
         static public bool IsEnemyTooFar(Robotron player, TrackedEnemy enemy)
         {
-            return enemy.Distance >= 2 * Strategy.GetSafeDistance(player);
+            return enemy.Distance >= Config.EnemyTooFarMultiplier * Strategy.GetSafeDistance(player);
+        }
+
+        static public bool IsEnemyTooClose(Robotron player, TrackedEnemy enemy)
+        {
+            return enemy.Distance < Config.EnemyTooCloseMultiplier * Strategy.GetSafeDistance(player);
         }
 
         static public bool ShouldRamEnemy(Robotron player, TrackedEnemy enemy)
@@ -52,7 +58,14 @@ namespace RC
 
         static public Double GetSafeDistance(Robotron robot)
         {
-            return 3.0 * robot.Width + Physics.Constants.MaxTankMovementPerTurn;
+            if (robot.Energy < Config.MinEnergyForCloserDistance)
+            {
+                return 5.0 * robot.Width + Physics.Constants.MaxTankMovementPerTurn;
+            }
+            else
+            {
+                return 3.0 * robot.Width + Physics.Constants.MaxTankMovementPerTurn;
+            }
         }
 
         static public TrackedEnemy CalculateTrackedEnemy(TrackedEnemy currentEnemy, Robotron robot)

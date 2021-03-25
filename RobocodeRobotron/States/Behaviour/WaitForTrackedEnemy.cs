@@ -27,7 +27,7 @@ namespace RC.Behaviour
             TrackedEnemy trackedEnemy = Strategy.CalculateTrackedEnemy(null, Player);
             if (trackedEnemy != null)
             {
-                behaviour.ChangeState(new ApproachEnemyState(Player, trackedEnemy));
+                behaviour.ChangeState(new AttackEnemyState(Player, trackedEnemy));
                 return;
             }
         }

@@ -36,7 +36,7 @@ namespace RC.Behaviour
             }
             if (newTrackedEnemy != Enemy)
             {
-                behaviour.ChangeState(new ApproachEnemyState(Player, newTrackedEnemy));
+                behaviour.ChangeState(new AttackEnemyState(Player, newTrackedEnemy));
                 return;
             }
             if (Enemy.Time != Player.Time)

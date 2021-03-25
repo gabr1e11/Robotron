@@ -21,9 +21,11 @@ namespace RC.Behaviour
 
         public void Enter(BehaviourStateMachine behaviour)
         {
-            behaviour.ChangeBodyState(new Body.RotateAroundEnemyState(Enemy, true));
+            behaviour.ChangeBodyState(new Body.SafeDistanceFromEnemyState(Enemy));
             behaviour.ChangeGunState(new Gun.TrackEnemyState(Enemy));
             behaviour.ChangeRadarState(new Radar.TrackEnemyLockFocusState(Enemy));
+
+            Player.SendTeamEvent(TeamEventType.TrackingEnemy, new Enemy(Enemy));
         }
 
         public void Execute(BehaviourStateMachine behaviour)
@@ -37,7 +39,15 @@ namespace RC.Behaviour
             }
             if (newTrackedEnemy != Enemy)
             {
-                behaviour.ChangeState(new ApproachEnemyState(Player, newTrackedEnemy));
+                behaviour.ChangeState(new AttackEnemyState(Player, newTrackedEnemy));
+                return;
+            }
+
+            // Enemy ramming
+            if (Player.IsFlagSet(Robotron.EventFlags.BumpedEnemy))
+            {
+                Player.ClearFlag(Robotron.EventFlags.BumpedEnemy);
+                behaviour.ChangeState(new WaitForTrackedEnemyState(Player));
                 return;
             }
 
@@ -45,13 +55,6 @@ namespace RC.Behaviour
             if (Strategy.ShouldRamEnemy(Player, Enemy))
             {
                 behaviour.ChangeState(new RamEnemyState(Player, Enemy));
-                return;
-            }
-
-            // Approach enemy
-            if (Strategy.IsEnemyTooFar(Player, Enemy))
-            {
-                behaviour.ChangeState(new ApproachEnemyState(Player, Enemy));
                 return;
             }
         }

@@ -24,7 +24,7 @@ namespace RC.Behaviour
             BehaviourFSM = new FiniteStateMachine<BehaviourStateMachine>(this, initState);
         }
 
-        public void ChangeState(FSMState<BehaviourStateMachine> newState)
+        public void ChangeState(Behaviour.State newState)
         {
             BehaviourFSM.ChangeState(newState);
         }

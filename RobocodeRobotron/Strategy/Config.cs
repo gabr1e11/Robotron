@@ -16,6 +16,9 @@ namespace RC
         // Minimum energy an enemy has to have for us to ram into it
         public Double MinEnergyForRamming = 40.0;
 
+        // Mininum energy to keep a closer distance to enemy
+        public Double MinEnergyForCloserDistance = 30.0;
+
         // Minimum distance for full energy bullet
         public Double MinDistanceHighEnergyBullet = 50.0;
         public Double MaxDistanceLowEnergyBullet = 500.0;
@@ -37,10 +40,13 @@ namespace RC
         // Angular speed for rotation around an enemy
         public Double RotationAroundEnemySpeedDegreesSec = 10.0;
 
-        // Maximum number of turns to keep for the position history of an enemy
-        public long PositionHistoryMaxTurnsToKeep = 20;
-
         // Enables/disables prediction of next enemy position
         public bool EnableEnemyPositionPrediction = true;
+
+        // Enemy safe distance thresholds
+        public Double EnemyTooFarMultiplier = 2.0;
+        public Double EnemyTooCloseMultiplier = 0.5;
+        public Double EnemyCloseEnoughMaxMultiplier = 1.5;
+        public Double EnemyCloseEnoughMinMultiplier = 0.8;
     }
 }
