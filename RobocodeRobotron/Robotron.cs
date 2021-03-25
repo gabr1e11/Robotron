@@ -338,6 +338,29 @@ namespace RC
         {
             base.OnWin(evnt);
 
+            BehaviourStateMachine.ChangeState(new Behaviour.NoopState());
+
+            TurnLeft(Utils.NormalRelativeAngleDegrees(Heading - 90));
+            TurnLeft(10.0);
+
+            SetAllColors(Color.Green);
+            TurnRight(20.0);
+            SetAllColors(Color.DarkGreen);
+            TurnLeft(20.0);
+            SetAllColors(Color.DarkOliveGreen);
+            TurnRight(20.0);
+            SetAllColors(Color.DarkSeaGreen);
+            TurnLeft(20.0);
+            SetAllColors(Color.ForestGreen);
+            TurnRight(20.0);
+            SetAllColors(Color.GreenYellow);
+            TurnLeft(20.0);
+            SetAllColors(Color.LawnGreen);
+            TurnLeft(20.0);
+            SetAllColors(Color.LightGreen);
+            TurnRight(20.0);
+            SetAllColors(Color.LightSeaGreen);
+            TurnLeft(20.0);
         }
 
         public override void OnHitRobot(HitRobotEvent evnt)
