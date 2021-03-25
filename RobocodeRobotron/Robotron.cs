@@ -53,6 +53,10 @@ namespace RC
     //    - Refactored the state machines to make them more independant
     // v1.2
     //    - Added predictive enemy tracking
+    // v1.3
+    //    - Added win dance
+    //    - Config for safe distance
+    //    - Fixed a bug in radar locking
     //
     public class Robotron : TeamRobot
     {
