@@ -174,7 +174,7 @@ namespace RC
         {
             List<TrackedBullet> hitAllies = robot.TrackedBullets.GetBullets().FindAll(
                 item => robot.IsTeammate(item.VictimName) &&
-                        item.HitTime <= Strategy.Config.AllyFireCheckMaxTurns);
+                        (robot.Time - item.HitTime) <= Strategy.Config.AllyFireCheckMaxTurns);
 
             return hitAllies.Count >= Strategy.Config.AllyFireCheckMaxHits;
         }

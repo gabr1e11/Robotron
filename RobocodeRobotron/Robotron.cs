@@ -123,7 +123,9 @@ namespace RC
             config.MaxBulletHitTimeDiff = 16 * 4;
 
             // BULLET TRACKING
-            config.BulletHistoryMaxTurns = 30;
+            config.BulletHistoryMaxTurns = 100;
+            config.AllyFireCheckMaxTurns = 50;
+            config.AllyFireCheckMaxHits = 2;
 
             // TEAM QUADRANT
             config.InitPosAllowedDistance = 50.0f;
@@ -330,6 +332,10 @@ namespace RC
 
         public override void OnBulletHit(BulletHitEvent evnt)
         {
+            if (IsTeammate(evnt.VictimName))
+            {
+                Log("HIT TEAMMATE!!!!!!!!!!!!!!");
+            }
             TrackedBullets.OnBulletHit(evnt);
         }
 
