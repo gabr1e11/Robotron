@@ -31,7 +31,7 @@ namespace RC.Behaviour
         public void Execute(BehaviourStateMachine behaviour)
         {
             // Enemy tracking
-            TrackedEnemy newTrackedEnemy = Strategy.CalculateTrackedEnemy(Enemy, Player);
+            TrackedEnemy newTrackedEnemy = Strategy.CalculateTrackedEnemy(Player);
             if (newTrackedEnemy == null)
             {
                 behaviour.ChangeState(new WaitForTrackedEnemyState(Player));
@@ -43,10 +43,16 @@ namespace RC.Behaviour
                 return;
             }
 
+            // Avoid killing our allies
+            if (Strategy.IsAllyUnderFriendlyFire(Player))
+            {
+                behaviour.ChangeState(new WaitForTrackedEnemyState(Player, Enemy));
+                return;
+            }
+
             // Enemy ramming
             if (Player.IsFlagSet(Robotron.EventFlags.BumpedEnemy))
             {
-                Player.ClearFlag(Robotron.EventFlags.BumpedEnemy);
                 behaviour.ChangeState(new WaitForTrackedEnemyState(Player));
                 return;
             }

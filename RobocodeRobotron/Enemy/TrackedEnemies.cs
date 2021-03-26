@@ -22,7 +22,7 @@ namespace RC
             BlacklistedEnemies = new List<String>();
         }
 
-        public void Update()
+        public void Update(long Time)
         {
             foreach (KeyValuePair<String, TrackedEnemy> pair in Enemies)
             {
@@ -32,11 +32,7 @@ namespace RC
 
         public List<TrackedEnemy> GetEnemies()
         {
-            List<TrackedEnemy> enemies = Enemies.Values.ToList<TrackedEnemy>();
-
-            enemies.RemoveAll(item => BlacklistedEnemies.Contains(item.Name));
-
-            return enemies;
+            return Enemies.Values.ToList<TrackedEnemy>();
         }
 
         public void AddBlacklistedEnemy(Enemy enemy)
@@ -52,6 +48,11 @@ namespace RC
         public void ClearBlacklistedEnemies()
         {
             BlacklistedEnemies.Clear();
+        }
+
+        public List<String> GetBlacklistedEnemies()
+        {
+            return BlacklistedEnemies;
         }
 
         public void OnScannedRobot(Enemy enemy)

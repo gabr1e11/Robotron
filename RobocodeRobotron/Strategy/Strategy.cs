@@ -78,15 +78,23 @@ namespace RC
             }
         }
 
-        static public TrackedEnemy CalculateTrackedEnemy(TrackedEnemy currentEnemy, Robotron robot)
+        static public TrackedEnemy CalculateTrackedEnemy(Robotron robot, TrackedEnemy enemyToAvoid = null)
         {
-            if (robot.TrackedEnemies.GetEnemies().Count == 0)
+            List<TrackedEnemy> enemies = robot.TrackedEnemies.GetEnemies();
+            List<String> blacklistedEnemies = robot.TrackedEnemies.GetBlacklistedEnemies();
+
+            // Blacklist enemies if there is more than one left
+            if (enemies.FindAll(item => !robot.IsTeammate(item.Name)).Count > 1)
+            {
+                enemies.RemoveAll(item => blacklistedEnemies.Contains(item.Name));
+            }
+
+            if (enemies.Count == 0)
             {
                 return null;
             }
 
             // Calculate tracking score
-            List<TrackedEnemy> enemies = robot.TrackedEnemies.GetEnemies();
             foreach (TrackedEnemy enemy in enemies)
             {
                 enemy.TrackingScore = Config.TrackingScoreDistanceWeight * enemy.Distance +
@@ -99,6 +107,13 @@ namespace RC
                 }
             }
             enemies.Sort((itemA, itemB) => itemA.TrackingScore.CompareTo(itemB.TrackingScore));
+
+            if (enemyToAvoid != null &&
+                enemies.ElementAt(0).Name == enemyToAvoid.Name &&
+                enemies.Count > 1)
+            {
+                return enemies.ElementAt(1);
+            }
             return enemies.ElementAt(0);
         }
 
@@ -153,6 +168,15 @@ namespace RC
         {
             return (position.X < (robot.BattleFieldWidth - robot.Width - 10)) && (position.X > robot.Width + 10) &&
                    (position.Y < (robot.BattleFieldHeight - robot.Height - 10)) && (position.Y > robot.Height + 10);
+        }
+
+        static public bool IsAllyUnderFriendlyFire(Robotron robot)
+        {
+            List<TrackedBullet> hitAllies = robot.TrackedBullets.GetBullets().FindAll(
+                item => robot.IsTeammate(item.VictimName) &&
+                        item.HitTime <= Strategy.Config.AllyFireCheckMaxTurns);
+
+            return hitAllies.Count >= Strategy.Config.AllyFireCheckMaxHits;
         }
     }
 }

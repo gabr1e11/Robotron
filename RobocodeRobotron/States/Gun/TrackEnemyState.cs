@@ -29,7 +29,7 @@ namespace RC.Gun
                 Double firePower = Strategy.CalculateFirePower(behaviour.Robot, Enemy);
 
                 Log("Firing Enemy: " + Enemy.Name + " with power: " + firePower + "(Gun heat = " + behaviour.Robot.GunHeat + ")");
-                behaviour.Robot.Fire(firePower);
+                behaviour.Robot.SetFire(firePower);
             }
         }
 

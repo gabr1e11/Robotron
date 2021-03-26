@@ -7,10 +7,12 @@ namespace RC.Behaviour
     public class WaitForTrackedEnemyState : Behaviour.State
     {
         private Robotron Player = null;
+        private TrackedEnemy EnemyToAvoid = null;
 
-        public WaitForTrackedEnemyState(Robotron player)
+        public WaitForTrackedEnemyState(Robotron player, TrackedEnemy enemyToAvoid = null)
         {
             Player = player;
+            EnemyToAvoid = enemyToAvoid;
         }
 
         public void Enter(BehaviourStateMachine behaviour)
@@ -24,7 +26,7 @@ namespace RC.Behaviour
 
         public void Execute(BehaviourStateMachine behaviour)
         {
-            TrackedEnemy trackedEnemy = Strategy.CalculateTrackedEnemy(null, Player);
+            TrackedEnemy trackedEnemy = Strategy.CalculateTrackedEnemy(Player, EnemyToAvoid);
             if (trackedEnemy != null)
             {
                 behaviour.ChangeState(new AttackEnemyState(Player, trackedEnemy));

@@ -41,8 +41,6 @@ namespace RC.Body
             {
                 ClockwiseTurnEnabled = !ClockwiseTurnEnabled;
                 LastRotationChangeTurn = behaviour.Robot.Time;
-
-                behaviour.Robot.ClearFlag(Robotron.EventFlags.HitWall);
             }
 
             Double angularSpeedRadiansSec = Utils.ToRadians(Strategy.Config.RotationAroundEnemySpeedDegreesSec);

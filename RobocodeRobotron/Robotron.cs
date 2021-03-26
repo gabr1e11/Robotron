@@ -57,6 +57,11 @@ namespace RC
     //    - Added win dance
     //    - Config for safe distance
     //    - Fixed a bug in radar locking
+    // v1.4
+    //    - If only one enemy is left, all teammates go for it
+    //    - Fixed a Fire() call that was left, changed to SetFire
+    //    - Removed specific ClearFlag and cleared all flags before Execute()
+    //    - Bullet hits are tracked to avoid ally fire on teammates
     //
     public class Robotron : TeamRobot
     {
@@ -69,6 +74,7 @@ namespace RC
 
         public Behaviour.BehaviourStateMachine BehaviourStateMachine;
         public TrackedEnemies TrackedEnemies;
+        public TrackedBullets TrackedBullets;
         public EventFlags Events { get; private set; }
         public bool IsTeamLeader = false;
 
@@ -82,6 +88,7 @@ namespace RC
             IsAdjustRadarForRobotTurn = true;
 
             TrackedEnemies = new TrackedEnemies(this);
+            TrackedBullets = new TrackedBullets(this);
             BehaviourStateMachine = new Behaviour.BehaviourStateMachine(this, new Behaviour.GoToQuadrantState(this));
 
             IsTeamLeader = (Util.GetTeamBotNumber(Name) == 1);
@@ -115,6 +122,9 @@ namespace RC
             //    Maximum number of turns to consider for danger score
             config.MaxBulletHitTimeDiff = 16 * 4;
 
+            // BULLET TRACKING
+            config.BulletHistoryMaxTurns = 30;
+
             // TEAM QUADRANT
             config.InitPosAllowedDistance = 50.0f;
 
@@ -136,16 +146,21 @@ namespace RC
         // MAIN LOOP
         public override void Run()
         {
-            base.Run();
-
             Init();
 
             while (true)
             {
-                TrackedEnemies.Update();
-                BehaviourStateMachine.ProcessState();
+                Update();
                 Execute();
             }
+        }
+
+        private void Update()
+        {
+            TrackedEnemies.Update(Time);
+            TrackedBullets.Update(Time);
+            BehaviourStateMachine.ProcessState();
+            ClearFlags();
         }
 
         // CONTROL METHODS
@@ -295,8 +310,6 @@ namespace RC
         // EVENTS
         public override void OnScannedRobot(ScannedRobotEvent evnt)
         {
-            base.OnScannedRobot(evnt);
-
             Enemy scannedEnemy = new Enemy(this, evnt);
 
             TrackedEnemies.OnScannedRobot(scannedEnemy);
@@ -312,15 +325,12 @@ namespace RC
 
         public override void OnHitWall(HitWallEvent evnt)
         {
-            base.OnHitWall(evnt);
-
-            Log("HIT A WALL");
             SetFlag(EventFlags.HitWall);
         }
 
         public override void OnBulletHit(BulletHitEvent evnt)
         {
-
+            TrackedBullets.OnBulletHit(evnt);
         }
 
         public override void OnBulletHitBullet(BulletHitBulletEvent evnt)
@@ -340,8 +350,6 @@ namespace RC
 
         public override void OnWin(WinEvent evnt)
         {
-            base.OnWin(evnt);
-
             BehaviourStateMachine.ChangeState(new Behaviour.NoopState());
 
             TurnLeft(Utils.NormalRelativeAngleDegrees(Heading - 90));
@@ -374,16 +382,12 @@ namespace RC
 
         public override void OnSkippedTurn(SkippedTurnEvent evnt)
         {
-            base.OnSkippedTurn(evnt);
-
             Log("======================[SKIPPED TURN]===========================");
         }
 
         // TEAM METHODS
         public override void OnMessageReceived(MessageEvent evnt)
         {
-            base.OnMessageReceived(evnt);
-
             if (evnt.Message is TeamEvent)
             {
                 TeamEvent teamEvent = (TeamEvent)evnt.Message;
@@ -397,10 +401,8 @@ namespace RC
                         if (!IsTeamLeader)
                         {
                             TrackedEnemies.ClearBlacklistedEnemies();
-                            if (Others > 1)
-                            {
-                                TrackedEnemies.AddBlacklistedEnemy(teamEvent.Enemy);
-                            }
+                            TrackedEnemies.AddBlacklistedEnemy(teamEvent.Enemy);
+
                         }
                         break;
                     case TeamEventType.SearchingForEnemy:

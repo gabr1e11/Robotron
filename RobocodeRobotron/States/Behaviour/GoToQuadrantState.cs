@@ -27,7 +27,6 @@ namespace RC.Behaviour
         {
             if (Strategy.IsInitPosCloseEnough(Player) || Player.IsFlagSet(Robotron.EventFlags.BumpedEnemy))
             {
-                Player.ClearFlag(Robotron.EventFlags.BumpedEnemy);
                 behaviour.ChangeState(new WaitForTrackedEnemyState(Player));
                 return;
             }

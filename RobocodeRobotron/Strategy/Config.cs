@@ -32,6 +32,11 @@ namespace RC
         //    Maximum number of turns to consider for danger score
         public long MaxBulletHitTimeDiff = 16 * 4;
 
+        // BULLET TRACKING
+        public long BulletHistoryMaxTurns = 30;
+        public long AllyFireCheckMaxTurns = 10;
+        public long AllyFireCheckMaxHits = 2;
+
         // TEAM QUADRANT
         public Double InitPosAllowedDistance = 50.0f;
 
